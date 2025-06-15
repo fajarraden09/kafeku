@@ -1,8 +1,0 @@
-{
-    "build": {
-        "builder": "HEROKU"
-    },
-    "deploy": {
-        "startCommand": "vendor/bin/heroku-php-apache2 public/"
-    }
-}
