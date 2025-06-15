@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View; // <-- 1. TAMBAHKAN INI
 use App\Http\View\Composers\UnpaidOrdersComposer; // <-- 2. TAMBAHKAN INI
+use Illuminate\Support\Facades\URL; 
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -25,5 +26,10 @@ class AppServiceProvider extends ServiceProvider
         // Kode ini berarti: "Setiap kali view 'layout.main' di-render,
         // jalankan UnpaidOrdersComposer".
         View::composer('layout.main', UnpaidOrdersComposer::class);
+        
+        if ($this->app->environment('production')) {
+        URL::forceScheme('https'); // <-- Pastikan ini ada
+        }
+
     }
 }
