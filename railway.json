@@ -14,6 +14,7 @@
         "phases": {
             "build": {
                 "cmds": [
+                    "sleep 10",
                     "php artisan config:clear",
                     "php artisan event:clear",
                     "php artisan view:clear",
