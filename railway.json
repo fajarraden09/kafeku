@@ -3,13 +3,6 @@
     "build": {
         "builder": "NIXPACKS"
     },
-    "deploy": {
-        "startCommand": "php -d post_max_size=50M -d upload_max_filesize=50M /opt/nixpacks/start.sh",
-        "healthcheckPath": "/api/health",
-        "healthcheckTimeout": 300,
-        "restartPolicyType": "ON_FAILURE",
-        "restartPolicyMaxRetries": 10
-    },
     "nixpacks": {
         "phases": {
             "build": {
