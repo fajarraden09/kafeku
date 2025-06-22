@@ -4,6 +4,12 @@
     "builder": "NIXPACKS",
     "nixpacksConfig": {
       "providers": ["php"],
+      "install": {
+        "cmd": "composer install --no-dev --no-progress --optimize-autoloader && npm ci"
+      },
+      "build": {
+        "cmd": "npm run build"
+      },
       "start": {
         "cmd": "php artisan serve --host 0.0.0.0 --port $PORT"
       }
