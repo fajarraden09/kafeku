@@ -10,9 +10,9 @@
       "build": {
         "cmd": "npm run build"
       },
-      "start": {
-        "cmd": "php artisan serve --host 0.0.0.0 --port $PORT"
-      }
+     "start": {
+            "cmd": "chmod -R 775 storage bootstrap/cache && php artisan serve --host 0.0.0.0 --port $PORT"
+        }
     }
   },
   "deploy": {
