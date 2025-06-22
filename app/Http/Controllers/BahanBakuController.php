@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\BahanBaku;
 use App\Services\MenuAvailabilityService;
 use Illuminate\Http\Request;

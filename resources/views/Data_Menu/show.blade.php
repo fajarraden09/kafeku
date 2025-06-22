@@ -5,6 +5,7 @@
             <div class="container-fluid">
                 {{-- ... header halaman ... --}}
                 <h1 class="m-0">Detail Menu: {{ $menu->nama_menu }}</h1>
+                <a href="{{ route('owner.menu') }}" class="btn btn-secondary mt-3">Kembali ke Daftar Menu</a>
             </div>
         </div>
 
@@ -58,8 +59,8 @@
                             </div>
                         </div>
                     </div>
+
                 </div>
-                <a href="{{ route('owner.menu') }}" class="btn btn-secondary">Kembali ke Daftar Menu</a>
             </div>
         </section>
     </div>

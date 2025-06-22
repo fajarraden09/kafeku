@@ -23,7 +23,7 @@ class BahanBaku extends Model
      */
     protected $fillable = [
         'nama_bahan',
-        'stok', // Tambahkan 'stok' di sini setelah memodifikasi migrasi
+        'stok',
         'satuan',
         'batas_minimum',
         'notifikasi_terkirim',

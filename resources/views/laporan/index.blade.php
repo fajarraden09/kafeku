@@ -242,13 +242,13 @@
                     type: 'GET',
                     success: function (response) {
                         var html = `
-                                                <p><strong>Kode Transaksi:</strong> ${response.kode_transaksi}</p>
-                                                <p><strong>Nama Pelanggan:</strong> ${response.nama_pelanggan ? response.nama_pelanggan : 'N/A'}</p>
-                                                <p><strong>Status:</strong> ${response.status_pembayaran}</p>
-                                                <p><strong>Metode Pembayaran:</strong> ${response.metode_pembayaran}</p>
-                                                <table class="table table-bordered mt-3">
-                                                    <thead><tr><th>Menu</th><th>Jumlah</th><th>Harga</th><th>Subtotal</th></tr></thead>
-                                                    <tbody>`;
+                                                    <p><strong>Kode Transaksi:</strong> ${response.kode_transaksi}</p>
+                                                    <p><strong>Nama Pelanggan:</strong> ${response.nama_pelanggan ? response.nama_pelanggan : 'N/A'}</p>
+                                                    <p><strong>Status:</strong> ${response.status_pembayaran}</p>
+                                                    <p><strong>Metode Pembayaran:</strong> ${response.metode_pembayaran}</p>
+                                                    <table class="table table-bordered mt-3">
+                                                        <thead><tr><th>Menu</th><th>Jumlah</th><th>Harga</th><th>Subtotal</th></tr></thead>
+                                                        <tbody>`;
 
                         response.detail_transaksi.forEach(function (item) {
                             html += `<tr><td>${item.menu ? item.menu.nama_menu : 'Menu Dihapus'}</td><td>${item.jumlah}</td><td>Rp ${Number(item.harga_saat_transaksi).toLocaleString('id-ID')}</td><td>Rp ${Number(item.subtotal).toLocaleString('id-ID')}</td></tr>`;

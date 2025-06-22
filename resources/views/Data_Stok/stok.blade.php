@@ -20,14 +20,12 @@
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">Data Stok Bahan Baku</h3>
-                                {{-- AWAL BLOK SEARCH --}}
                                 <div class="card-tools">
                                     <div class="input-group input-group-sm" style="width: 250px;">
                                         <input type="text" id="stokSearch" name="table_search"
                                             class="form-control float-right" placeholder="Cari Nama Bahan...">
                                     </div>
                                 </div>
-                                {{-- AKHIR BLOK SEARCH --}}
                             </div>
                             <div class="card-body table-responsive p-0">
                                 <table class="table table-bordered table-hover text-nowrap">
@@ -118,7 +116,7 @@
                 var value = $(this).val().toLowerCase();
                 // Loop melalui setiap baris di tabel body
                 $("#stokTableBody tr").filter(function () {
-                    // Kita menargetkan kolom kedua (index 1) yaitu "Nama Bahan"
+                    // Menargetkan kolom kedua (index 1) yaitu "Nama Bahan"
                     $(this).toggle($(this).children('td:eq(1)').text().toLowerCase().indexOf(value) > -1)
                 });
             });

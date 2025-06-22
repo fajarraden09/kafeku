@@ -5,7 +5,6 @@ use App\Http\Controllers\BahanBakuController;
 use App\Http\Controllers\BahanKeluarController;
 use App\Http\Controllers\BahanMasukController;
 use App\Http\Controllers\HomeController;
-use App\Http\Controllers\KasirController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MenuController;
@@ -38,11 +37,6 @@ Route::group(['prefix' => 'owner', 'middleware' => ['auth'], 'as' => 'owner.'], 
         Route::delete('/akun.delete/{id}', [AkunController::class, 'delete'])->name('akun.delete');
     });
     // --- AKHIR DARI KELOMPOK KHUSUS OWNER ---
-
-    // --- Route TRANSAKSI
-    // Route::get('/transaksi', [KasirController::class, 'createTransaksi'])->name('transaksi.create');
-    // Route::post('/transaksi', [KasirController::class, 'storeTransaksi'])->name('transaksi.store');
-    // ---------------------------------------------------
 
     // Route Bahan Masuk
     Route::get('/bahan_masuk',[BahanMasukController::class,'index'])->name('bahan_masuk');
