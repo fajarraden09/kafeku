@@ -4,21 +4,8 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "php artisan serve --host 0.0.0.0 --port $PORT",
-        "healthcheckPath": "/",
-        "restartPolicyType": "ON_FAILURE"
-    },
-    "nixpacks": {
-        "phases": {
-            "build": {
-                "cmds": [
-                    "php artisan config:clear",
-                    "php artisan route:clear",
-                    "php artisan view:clear",
-                    "php artisan storage:link",
-                    "php artisan migrate:fresh --seed --force"
-                ]
-            }
-        }
+        "startCommand": "php artisan migrate:fresh --seed --force && php artisan serve --host 0.0.0.0 --port $PORT",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
     }
 }
