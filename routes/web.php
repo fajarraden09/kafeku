@@ -12,9 +12,9 @@
 use Illuminate\Support\Facades\Route;
 
 
-Route::get('/', function () {
-    return 'Halo Dunia! Aplikasi Laravel saya berhasil berjalan.';
-});
+    Route::get('/', function () {
+        return 'Halo Dunia! Aplikasi Laravel saya berhasil berjalan.';
+    });
 // Route Login
 
 // Route::get('/',[LoginController::class,'index'])->name('login');
@@ -97,5 +97,5 @@ Route::get('/', function () {
 //     // Route untuk mengubah status transaksi menjadi lunas
 //     Route::post('/transaksi/{id}/mark-as-paid', [TransaksiController::class, 'markAsPaid'])->name('transaksi.markAsPaid');
 
-});
+// });
 
