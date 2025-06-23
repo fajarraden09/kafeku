@@ -5,18 +5,13 @@
     },
     "deploy": {
         "startCommand": "php artisan serve --host 0.0.0.0 --port $PORT",
-        "restartPolicyType": "ON_FAILURE",
-        "restartPolicyMaxRetries": 10,
         "healthcheckPath": "/",
-        "healthcheckTimeout": 600,
-        "healthcheckInterval": 30,
-        "healthcheckRetries": 10
+        "restartPolicyType": "ON_FAILURE"
     },
     "nixpacks": {
         "phases": {
             "build": {
                 "cmds": [
-                    "sleep 15",
                     "php artisan config:clear",
                     "php artisan route:clear",
                     "php artisan view:clear",
