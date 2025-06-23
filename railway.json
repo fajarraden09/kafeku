@@ -4,21 +4,32 @@
         "builder": "NIXPACKS"
     },
     "deploy": {
-        "startCommand": "php artisan serve --host 0.0.0.0 --port $PORT",
+        "startCommand": "php-fpm -D; nginx -g 'daemon off;'",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10,
         "healthcheckPath": "/",
-        "restartPolicyType": "ON_FAILURE"
+        "healthcheckTimeout": 600,
+        "healthcheckInterval": 15
     },
     "nixpacks": {
         "phases": {
+            "setup": {
+                "cmds": [
+                    "php artisan storage:link"
+                ]
+            },
             "build": {
                 "cmds": [
                     "php artisan config:clear",
                     "php artisan route:clear",
-                    "php artisan view:clear",
-                    "php artisan storage:link",
-                    "php artisan migrate:fresh --seed --force"
+                    "php artisan view:clear"
                 ]
             }
+        },
+        "start": {
+            "cmds": [
+                "php artisan migrate:fresh --seed --force"
+            ]
         }
     }
 }
