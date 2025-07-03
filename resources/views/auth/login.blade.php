@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name', 'Laravel') }}</title>
-    <link rel="icon" href="{{ asset('gambar/logo1.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('gambar/logo1.png?v=1.0') }}" type="image/png">
 
     <!-- bootsrtap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet"
