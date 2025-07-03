@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use App\Models\BatchBahanBaku; 
-use App\Models\BahanBakuKeluar; 
-use App\Models\BahanBaku;  
+use App\Models\BatchBahanBaku;
+use App\Models\BahanBakuKeluar;
+use App\Models\BahanBaku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log; // Ditambahkan untuk logging error
 
 class LaporanController extends Controller
 {
@@ -14,41 +16,26 @@ class LaporanController extends Controller
      * Menampilkan halaman utama laporan dengan daftar semua transaksi.
      */
     public function index(Request $request)
-{
-    $query = Transaksi::with('user')->latest();
+    {
+        $query = Transaksi::with('user')->latest();
 
-    // Jika ada parameter status di URL, filter berdasarkan itu
-    if ($request->has('status') && $request->status == 'Belum Dibayar') {
-        $query->where('status_pembayaran', 'Belum Dibayar');
+        if ($request->has('status') && $request->status == 'Belum Dibayar') {
+            $query->where('status_pembayaran', 'Belum Dibayar');
+        }
+
+        $transaksi = $query->get();
+
+        return view('laporan.index', compact('transaksi'));
     }
 
-    $transaksi = $query->get();
-
-    return view('laporan.index', compact('transaksi'));
-}
-
     /**
-     * Mengambil detail sebuah transaksi untuk ditampilkan di modal.
-     * Method ini akan merespon dengan data JSON.
+     * Mengambil detail sebuah transaksi untuk ditampilkan di modal atau dicetak.
      */
     public function show($id)
     {
-        // Ambil data transaksi beserta detailnya, dan di dalam detail ambil juga data menunya.
-        $transaksi = Transaksi::with('detailTransaksi.menu')->findOrFail($id);
-
+        // Eager load relasi yang dibutuhkan untuk detail dan nota
+        $transaksi = Transaksi::with('detailTransaksi.menu', 'user')->findOrFail($id);
         return response()->json($transaksi);
-    }
-
-    /**
-     * Menghapus riwayat transaksi secara "soft delete".
-     * Data hanya disembunyikan dan tetap terhitung di grafik.
-     */
-    public function softDelete($id)
-    {
-        $transaksi = Transaksi::findOrFail($id);
-        $transaksi->delete(); // Ini akan menjalankan soft delete
-
-        return redirect()->route('owner.laporan.index')->with('success', 'Riwayat transaksi (kesalahan input) berhasil dihapus dari tampilan.');
     }
 
     /**
@@ -56,22 +43,57 @@ class LaporanController extends Controller
      */
     public function forceDelete($id)
     {
-        // Gunakan withTrashed() untuk mencari data yang mungkin sudah di-soft-delete
         $transaksi = Transaksi::withTrashed()->findOrFail($id);
-        $transaksi->forceDelete(); // Ini akan menjalankan hard delete
-
+        $transaksi->forceDelete();
         return redirect()->route('owner.laporan.index')->with('success', 'Riwayat transaksi berhasil dihapus secara permanen.');
     }
 
     public function laporanStok()
     {
-        // ... (query untuk bahanMasuk dan bahanKeluar tetap sama) ...
         $bahanMasuk = BatchBahanBaku::with('bahanBaku', 'user')->latest()->get();
         $bahanKeluar = BahanBakuKeluar::with('bahanBaku', 'user')->latest()->get();
-
-        // Urutkan data berdasarkan kolom 'stok' dari yang terkecil ke terbesar
-        $stokSaatIni = BahanBaku::orderBy('stok', 'asc')->get(); 
-
+        $stokSaatIni = BahanBaku::orderBy('stok', 'asc')->get();
         return view('laporan.stok', compact('bahanMasuk', 'bahanKeluar', 'stokSaatIni'));
+    }
+
+    public function cancelAndRestock($id)
+    {
+        // Eager load semua relasi yang dibutuhkan dalam satu query
+        $transaksi = Transaksi::with('detailTransaksi.menu.resep.bahanBaku')->find($id);
+
+        if (!$transaksi) {
+            return redirect()->route('owner.laporan.index')->with('error', 'Transaksi tidak ditemukan.');
+        }
+
+        DB::beginTransaction();
+        try {
+            foreach ($transaksi->detailTransaksi as $detail) {
+                if ($detail->menu && $detail->menu->resep->isNotEmpty()) {
+                    foreach ($detail->menu->resep as $resepItem) {
+                        if ($resepItem->bahanBaku) {
+                            $jumlahDipesan = $detail->jumlah;
+                            
+                            //❗️ PERBAIKAN DI SINI: Sesuaikan dengan nama kolom Anda
+                            $stokPerResep = $resepItem->jumlah_dibutuhkan;
+                            
+                            $stokUntukDikembalikan = $jumlahDipesan * $stokPerResep;
+
+                            $resepItem->bahanBaku->increment('stok', $stokUntukDikembalikan);
+                        }
+                    }
+                }
+            }
+
+            // Hapus transaksi secara permanen
+            $transaksi->forceDelete();
+
+            DB::commit();
+            return redirect()->route('owner.laporan.index')->with('success', 'Transaksi berhasil dibatalkan dan stok bahan baku telah dikembalikan.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Gagal Batalkan Transaksi ID ' . $id . ': ' . $e->getMessage());
+            return redirect()->route('owner.laporan.index')->with('error', 'Terjadi kesalahan saat membatalkan transaksi. Silakan coba lagi.');
+        }
     }
 }

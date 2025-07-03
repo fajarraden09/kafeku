@@ -26,7 +26,7 @@ class Transaksi extends Model
      */
     public function detailTransaksi()
     {
-        return $this->hasMany(DetailTransaksi::class);
+        return $this->hasMany(DetailTransaksi::class, 'transaksi_id');
     }
 
     /**
@@ -39,5 +39,7 @@ class Transaksi extends Model
         // 'user_id' adalah foreign key di tabel 'transaksi' ini.
         return $this->belongsTo(User::class, 'user_id');
     }
+
+
     
 }
