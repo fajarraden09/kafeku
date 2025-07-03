@@ -8,9 +8,9 @@
     <link rel="icon" href="{{ asset('gambar/logo1.png') }}" type="image/png">
     <link rel="stylesheet"
         href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-    <link rel="stylesheet" href="{{ asset('lte/plugins/fontawesome-free/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('Lte/plugins/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css">
-    <link rel="stylesheet" href="{{ asset('lte/dist/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset(';Lte/dist/css/adminlte.min.css') }}">
 </head>
 
 <body class="hold-transition sidebar-mini">
@@ -138,14 +138,15 @@
     </div>
 
     {{-- Script Java --}}
-    <script src="{{ asset('lte/plugins/chart.js/Chart.min.js') }}"></script>
-    <script src="{{ asset('lte/plugins/jquery/jquery.min.js') }}"></script>
-    <script src="{{ asset('lte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ asset('Lte/plugins/chart.js/Chart.min.js') }}"></script>
+    <script src="{{ asset('Lte/plugins/jquery/jquery.min.js') }}"></script>
+    <script src="{{ asset('Lte/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap4.min.js"></script>
-    <script src="{{ asset('lte/dist/js/adminlte.min.js') }}"></script>
+    <script src="{{ asset('Lte/dist/js/adminlte.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('scripts')
 
 </body>
+
 </html>
