@@ -59,7 +59,7 @@
                                     @if($menu->image)
                                         <div class="form-group">
                                             <label>Gambar Saat Ini:</label>
-                                            <img src="{{ asset('storage/' . $menu->image) }}" alt="{{ $menu->nama_menu }}"
+                                            <img src="{{ asset('uploads/' . $menu->image) }}" alt="{{ $menu->nama_menu }}"
                                                 width="150">
                                         </div>
                                     @endif

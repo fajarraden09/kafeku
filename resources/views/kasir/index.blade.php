@@ -46,7 +46,7 @@
                                         <div class="card h-100">
                                             <div style="width: 100%; padding-top: 100%; position: relative; overflow: hidden;">
                                                 @if ($menu->image)
-                                                    <img src="{{ asset('storage/' . $menu->image) }}" class="card-img-top"
+                                                    <img src="{{ asset('uploads/' . $menu->image) }}" class="card-img-top"
                                                         alt="{{ $menu->nama_menu }}"
                                                         style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
                                                 @else
