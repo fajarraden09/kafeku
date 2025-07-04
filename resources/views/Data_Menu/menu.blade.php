@@ -55,7 +55,7 @@
                                                 <td>
                                                     {{-- BAGIAN GAMBAR --}}
                                                     @if ($d->image)
-                                                        <img src="{{ asset('storage/' . $d->image) }}" alt="{{ $d->nama_menu }}"
+                                                        <img src="{{ asset('uploads/' . $d->image) }}" alt="{{ $d->nama_menu }}"
                                                             style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
                                                     @else
                                                         <div
