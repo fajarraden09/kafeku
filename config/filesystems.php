@@ -36,7 +36,7 @@ return [
 
             'public' => [
                 'driver' => 'local',
-                'root' => base_path('public_html/uploads'), // UBAH BARIS INI
+                'root' => base_path('uploads'), // UBAH BARIS INI
                 'url' => env('APP_URL').'/uploads', // UBAH BARIS INI
                 'visibility' => 'public',
             ],
