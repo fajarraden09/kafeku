@@ -9,18 +9,8 @@ class BahanBaku extends Model
 {
     use HasFactory;
 
-    /**
-     * Menentukan nama tabel yang terhubung dengan model.
-     *
-     * @var string
-     */
     protected $table = 'bahan_baku';
 
-    /**
-     * Atribut yang dapat diisi secara massal.
-     *
-     * @var array<int, string>
-     */
     protected $fillable = [
         'nama_bahan',
         'stok',
@@ -33,12 +23,12 @@ class BahanBaku extends Model
     {
         return $this->hasMany(ResepMenu::class);
     }
-    
+
+    /**
+     * Mendefinisikan relasi "hasMany" ke model BatchBahanBaku.
+     */
     public function batches()
     {
-        // Asumsi: 'bahan_baku_id' adalah foreign key di tabel 'batches'
-        // yang merujuk ke 'id' dari tabel 'bahan_baku'.
-    return $this->hasMany(BatchBahanBaku::class, 'bahan_baku_id');
+        return $this->hasMany(BatchBahanBaku::class, 'bahan_baku_id');
     }
-    
 }

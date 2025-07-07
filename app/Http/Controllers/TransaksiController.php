@@ -7,11 +7,14 @@ use App\Models\BahanBaku;
 use App\Models\Transaksi;
 use App\Models\DetailTransaksi;
 use App\Services\MenuAvailabilityService;
-use App\Services\StockNotificationService; 
+use App\Services\StockNotificationService;
+use App\Services\StockConsumptionService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log; // Tambahkan ini: Import facade Log
 use App\Models\Kategori;
+use Throwable;
 
 class TransaksiController extends Controller
 {
@@ -22,7 +25,7 @@ class TransaksiController extends Controller
     {
         // Ambil semua menu yang status ketersediaannya true
         $menus = Menu::where('ketersediaan', true)->get();
-        
+
         // Ambil semua kategori untuk tombol filter
         $kategori = Kategori::all();
 
@@ -35,7 +38,7 @@ class TransaksiController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input, termasuk input baru
+        // Validasi input
         $request->validate([
             'items' => 'required|array|min:1',
             'items.*.menu_id' => 'required|exists:menus,id',
@@ -47,31 +50,47 @@ class TransaksiController extends Controller
 
         try {
             $transaksi = DB::transaction(function () use ($request) {
-                
+
                 $totalHarga = 0;
-                // ... (logika hitung total harga yang sudah ada) ...
+                $affectedBahanBaku = []; // Inisialisasi array untuk bahan baku yang terpengaruh
+
+                // Loop pertama untuk menghitung total harga dan melakukan pengecekan stok awal
                 foreach ($request->items as $item) {
-                    $menu = Menu::find($item['menu_id']);
+                    $menu = Menu::with('resep.bahanBaku')->find($item['menu_id']);
+
+                    if (!$menu) {
+                        throw new \Exception('Menu dengan ID ' . $item['menu_id'] . ' tidak ditemukan.');
+                    }
+
                     $totalHarga += $menu->harga * $item['jumlah'];
+
+                    // Pengecekan stok awal sebelum pengurangan
+                    foreach($menu->resep as $resepItem) {
+                        if (!$resepItem->bahanBaku) {
+                            throw new \Exception('Bahan baku tidak ditemukan untuk resep menu ' . $menu->nama_menu);
+                        }
+                        $requiredQuantity = $resepItem->jumlah_dibutuhkan * $item['jumlah'];
+                        if ($resepItem->bahanBaku->stok < $requiredQuantity) {
+                            throw new \Exception('Stok ' . $resepItem->bahanBaku->nama_bahan . ' tidak mencukupi untuk menu ' . $menu->nama_menu . '. Dibutuhkan: ' . $requiredQuantity . ', Tersedia: ' . $resepItem->bahanBaku->stok);
+                        }
+                    }
                 }
 
-                // 1. Buat record transaksi utama dengan data baru
+                // 1. Buat record transaksi utama
                 $transaksi = Transaksi::create([
                     'kode_transaksi'    => uniqid('TRX-'),
-                    'user_id'           => Auth::id(),
+                    'user_id'           => Auth::id(), // Pastikan user_id tersedia
                     'nama_pelanggan'    => $request->nama_pelanggan,
                     'total_harga'       => $totalHarga,
                     'metode_pembayaran' => $request->metode_pembayaran,
                     'status_pembayaran' => ($request->waktu_pembayaran === 'Langsung') ? 'Lunas' : 'Belum Dibayar',
                 ]);
-                // ... (Sisa logika untuk detail transaksi, pengurangan stok, dan update ketersediaan menu tetap sama) ...
+
+                // Loop kedua untuk menyimpan detail transaksi dan mengurangi stok dengan FEFO
                 foreach ($request->items as $item) {
-                    $menu = Menu::with('resep.bahanBaku')->find($item['menu_id']);
-                    foreach($menu->resep as $resepItem) {
-                        if ($resepItem->bahanBaku->stok < ($resepItem->jumlah_dibutuhkan * $item['jumlah'])) {
-                            throw new \Exception('Stok untuk ' . $resepItem->bahanBaku->nama_bahan . ' tidak mencukupi!');
-                        }
-                    }
+                    $menu = Menu::with('resep.bahanBaku')->find($item['menu_id']); // Muat ulang menu dengan relasi
+
+                    // Simpan detail transaksi
                     DetailTransaksi::create([
                         'transaksi_id' => $transaksi->id,
                         'menu_id' => $menu->id,
@@ -79,35 +98,44 @@ class TransaksiController extends Controller
                         'harga_saat_transaksi' => $menu->harga,
                         'subtotal' => $menu->harga * $item['jumlah'],
                     ]);
+
+                    // Kurangi stok bahan baku menggunakan StockConsumptionService (FEFO)
                     foreach($menu->resep as $resepItem) {
                         $bahanBaku = $resepItem->bahanBaku;
                         $totalPengurangan = $resepItem->jumlah_dibutuhkan * $item['jumlah'];
-                        $bahanBaku->decrement('stok', $totalPengurangan);
-                        $affectedBahanBaku[$bahanBaku->id] = $bahanBaku;
+
+                        // Panggil StockConsumptionService untuk mengurangi stok dengan FEFO
+                        StockConsumptionService::consume($bahanBaku, $totalPengurangan);
+
+                        // Tambahkan bahan baku yang terpengaruh ke array untuk notifikasi dan update ketersediaan menu
+                        // Gunakan fresh() untuk mendapatkan data bahanBaku terbaru setelah pengurangan stok
+                        $affectedBahanBaku[$bahanBaku->id] = $bahanBaku->fresh();
                     }
                 }
-                    // (Anda bisa optimasi bagian update ketersediaan menu di sini jika perlu)
-                    // == SINKRONISASI SERVICE SETELAH SEMUA STOK DIKURANGI ==
-                    // Loop melalui bahan baku yang terpengaruh untuk update ketersediaan dan kirim notif
-                    foreach ($affectedBahanBaku as $bahanBaku) {
+
+                // == SINKRONISASI SERVICE SETELAH SEMUA STOK DIKURANGI ==
+                // Loop melalui bahan baku yang terpengaruh untuk update ketersediaan dan kirim notif
+                foreach ($affectedBahanBaku as $bahanBaku) { // Variabel $bahanBaku sudah didefinisikan di sini
                     // Panggil service untuk memeriksa stok & kirim notifikasi jika perlu
-                    StockNotificationService::checkAndNotify($bahanBaku->fresh());
+                    StockNotificationService::checkAndNotify($bahanBaku); // $bahanBaku sudah fresh()
 
                     // Panggil service untuk update ketersediaan semua menu yang memakai bahan ini
-                        foreach ($bahanBaku->resep()->with('menu')->get() as $resepTerkait) {
-                            if($resepTerkait->menu) {
-                                MenuAvailabilityService::update($resepTerkait->menu);
-                            }
+                    // Pastikan relasi 'resep' di BahanBaku memuat 'menu'
+                    foreach ($bahanBaku->resep()->with('menu')->get() as $resepTerkait) { // Perbaikan: $bahanBahanBaku menjadi $bahanBaku
+                        if($resepTerkait->menu) {
+                            MenuAvailabilityService::update($resepTerkait->menu);
                         }
                     }
+                }
 
                 return $transaksi;
             });
-            
-            
+
             return redirect()->route('owner.kasir.index')->with('success', 'Transaksi berhasil! Kode: ' . $transaksi->kode_transaksi);
 
-        } catch (\Exception $e) {
+        } catch (Throwable $e) { // Tangkap Throwable untuk semua jenis error
+            // Log error untuk debugging
+            Log::error("Transaksi Gagal: " . $e->getMessage()); // Menggunakan Log::error setelah di-import
             return redirect()->back()->with('error', 'Transaksi Gagal: ' . $e->getMessage());
         }
     }
