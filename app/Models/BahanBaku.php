@@ -31,4 +31,8 @@ class BahanBaku extends Model
     {
         return $this->hasMany(BatchBahanBaku::class, 'bahan_baku_id');
     }
+    public function bahanKeluar()
+    {
+        return $this->hasMany(BahanKeluar::class, 'bahan_baku_id');
+    }
 }
