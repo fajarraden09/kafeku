@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use App\Models\BahanBaku;
-use App\Models\User;
-use App\Mail\LowStockNotification;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
+use App\Models\User; // Diperlukan untuk mencari user owner
+use App\Mail\LowStockNotification; // Diperlukan untuk mengirim email
+use Illuminate\Support\Facades\Mail; // Diperlukan untuk mengirim email
+use Illuminate\Support\Facades\Http; // Diperlukan untuk mengirim WhatsApp
+use Illuminate\Support\Facades\Log; // Diperlukan untuk logging
+use Carbon\Carbon; // Diperlukan untuk manipulasi tanggal
 
 class StockNotificationService
 {
@@ -23,6 +23,7 @@ class StockNotificationService
         Log::info("--- Memulai checkAndNotify untuk BahanBaku: {$bahanBaku->nama_bahan} (ID: {$bahanBaku->id}) ---");
 
         // Muat ulang relasi batches untuk mendapatkan data tanggal kadaluarsa terbaru
+        // Ini penting karena BahanBaku yang masuk mungkin belum memuat relasi ini
         $bahanBaku->load('batches');
         Log::info("Jumlah batch ditemukan untuk {$bahanBaku->nama_bahan}: {$bahanBaku->batches->count()}");
 
@@ -42,6 +43,7 @@ class StockNotificationService
         // 2. Notifikasi Stok Rendah (Hampir Habis) - hanya jika stok > 0 dan di bawah batas minimum
         elseif ($bahanBaku->stok > 0 && $bahanBaku->stok <= $bahanBaku->batas_minimum) {
             Log::info("Kondisi: Stok Rendah ({$bahanBaku->stok} {$bahanBaku->satuan}, Batas Min: {$bahanBaku->batas_minimum})");
+            // Kirim notifikasi HANYA JIKA notifikasi belum pernah terkirim untuk kondisi ini
             if (!$bahanBaku->notifikasi_terkirim) {
                 self::sendNotification(
                     $bahanBaku,
@@ -81,7 +83,7 @@ class StockNotificationService
                     self::sendNotification(
                         $bahanBaku,
                         'Batch Kadaluarsa: ' . $bahanBaku->nama_bahan,
-                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') telah kadaluarsa pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '. Terdapat ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . ' stok yang kadaluarsa di batch ini.' // Diperbarui
+                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') telah kadaluarsa pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '. Terdapat ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . ' stok yang kadaluarsa di batch ini.'
                     );
                     // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_kadaluarsa_terkirim)
                     // agar notifikasi ini hanya terkirim sekali per batch yang kadaluarsa.
@@ -92,7 +94,7 @@ class StockNotificationService
                     self::sendNotification(
                         $bahanBaku,
                         'Batch Hampir Kadaluarsa: ' . $bahanBaku->nama_bahan,
-                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') akan kadaluarsa dalam ' . $selisihHariBulat . ' hari (pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '). Terdapat ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . ' stok yang akan kadaluarsa di batch ini.' // Diperbarui
+                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') akan kadaluarsa dalam ' . $selisihHariBulat . ' hari (pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '). Terdapat ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . ' stok yang akan kadaluarsa di batch ini.'
                     );
                     // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_hampir_kadaluarsa_terkirim)
                     // agar notifikasi ini hanya terkirim sekali per batch yang hampir kadaluarsa.
@@ -141,6 +143,8 @@ class StockNotificationService
                 // 1. Kirim Email
                 if ($owner->email) {
                     try {
+                        // PENTING: Pastikan Mailable LowStockNotification Anda menggunakan parameter $message ini
+                        // di dalam view email-nya. Contoh: $this->messageContent di view Blade.
                         Mail::to($owner->email)->send(new LowStockNotification($bahanBaku, $subject, $message));
                         Log::info("Notifikasi email untuk '{$subject}' berhasil dikirim ke {$owner->email}.");
                     } catch (\Exception $e) {
