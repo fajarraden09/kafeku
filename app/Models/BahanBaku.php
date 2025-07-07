@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\BahanBakuKeluar;
 
 class BahanBaku extends Model
 {
@@ -33,6 +34,6 @@ class BahanBaku extends Model
     }
     public function bahanKeluar()
     {
-        return $this->hasMany(BahanKeluar::class, 'bahan_baku_id');
+        return $this->hasMany(BahanBakuKeluar::class, 'bahan_baku_id');
     }
 }
