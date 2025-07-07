@@ -69,7 +69,7 @@ class BahanBakuController extends Controller
             'batas_minimum' => 'required|integer|min:0',
         ]);
 
-        $bahanBaku = BahanBahanBaku::findOrFail($id); // Perbaikan: seharusnya BahanBaku
+        $bahanBaku = BahanBaku::findOrFail($id); // Perbaikan: seharusnya BahanBaku
         $bahanBaku->update($request->all());
 
         // <-- 2. MULAI SINKRONISASI SETELAH UPDATE STOK -->
