@@ -121,6 +121,6 @@ class BahanKeluarController extends Controller
         $itemKeluar->delete();
 
         // 3. Redirect kembali ke halaman index dengan pesan sukses
-        return redirect()->route('owner.keluar.index')->with('success', 'Riwayat bahan keluar berhasil dihapus.');
+        return redirect()->route('owner.bahan_keluar')->with('success', 'Riwayat bahan keluar berhasil dihapus.');
     }
 }

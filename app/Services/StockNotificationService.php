@@ -112,39 +112,41 @@ class StockNotificationService
      * @param string $message Isi notifikasi.
      * @return void
      */
-    private static function sendNotification(BahanBaku $bahanBaku, string $subject, string $message): void // Added $bahanBaku parameter
+    private static function sendNotification(BahanBaku $bahanBaku, string $subject, string $message): void
     {
         Log::warning("[NOTIFIKASI STOK] {$subject}: {$message}");
 
-        // Dapatkan owner untuk pengiriman notifikasi
-        $owner = User::where('role', 'owner')->first();
+        // Dapatkan SEMUA owner untuk pengiriman notifikasi
+        $owners = User::where('role', 'owner')->get(); // Mengambil semua owner
 
-        if ($owner) {
-            // 1. Kirim Email
-            if ($owner->email) {
-                try {
-                    // Asumsi Anda memiliki Mailable LowStockNotification yang bisa menerima subject dan message
-                    // Jika tidak, Anda perlu memodifikasi Mailable tersebut atau membuat Mailable baru
-                    Mail::to($owner->email)->send(new LowStockNotification($bahanBaku, $subject, $message)); // Contoh: passing subject dan message
-                    Log::info("Notifikasi email untuk '{$subject}' berhasil dikirim ke {$owner->email}.");
-                } catch (\Exception $e) {
-                    Log::error("Gagal mengirim email notifikasi '{$subject}': " . $e->getMessage());
+        if ($owners->isNotEmpty()) { // Memastikan ada owner yang ditemukan
+            foreach ($owners as $owner) { // Loop melalui setiap owner
+                // 1. Kirim Email
+                if ($owner->email) {
+                    try {
+                        Mail::to($owner->email)->send(new LowStockNotification($bahanBaku, $subject, $message));
+                        Log::info("Notifikasi email untuk '{$subject}' berhasil dikirim ke {$owner->email}.");
+                    } catch (\Exception $e) {
+                        Log::error("Gagal mengirim email notifikasi '{$subject}' ke {$owner->email}: " . $e->getMessage());
+                    }
+                }
+
+                // 2. Kirim WhatsApp (Contoh menggunakan Fonnte)
+                if ($owner->phone_number && env('FONNTE_API_TOKEN')) {
+                    try {
+                        Http::withHeaders(['Authorization' => env('FONNTE_API_TOKEN')])
+                            ->post('https://api.fonnte.com/send', [
+                                'target' => $owner->phone_number,
+                                'message' => $message
+                            ]);
+                        Log::info("Notifikasi WhatsApp untuk '{$subject}' berhasil dikirim ke {$owner->phone_number}.");
+                    } catch (\Exception $e) {
+                        Log::error("Gagal mengirim notifikasi WhatsApp '{$subject}' ke {$owner->phone_number}: " . $e->getMessage());
+                    }
                 }
             }
-
-            // 2. Kirim WhatsApp (Contoh menggunakan Fonnte)
-            if ($owner->phone_number && env('FONNTE_API_TOKEN')) {
-                try {
-                    Http::withHeaders(['Authorization' => env('FONNTE_API_TOKEN')])
-                        ->post('https://api.fonnte.com/send', [
-                            'target' => $owner->phone_number,
-                            'message' => $message
-                        ]);
-                    Log::info("Notifikasi WhatsApp untuk '{$subject}' berhasil dikirim.");
-                } catch (\Exception $e) {
-                    Log::error("Gagal mengirim notifikasi WhatsApp '{$subject}': " . $e->getMessage());
-                }
-            }
+        } else {
+            Log::warning("Tidak ada user dengan role 'owner' ditemukan untuk mengirim notifikasi.");
         }
     }
 }

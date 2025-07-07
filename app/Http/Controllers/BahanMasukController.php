@@ -3,13 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
+use Illuminate\Support\Facades\Auth;
 use App\Models\BatchBahanBaku;
 use App\Services\MenuAvailabilityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use App\Services\StockNotificationService;
-use Throwable; // Pastikan ini di-import untuk menangkap semua jenis error
+use Throwable; 
 
 class BahanMasukController extends Controller
 {
@@ -55,7 +56,7 @@ class BahanMasukController extends Controller
                 // 1. Buat record baru di tabel batch_bahan_baku
                 $batch = BatchBahanBaku::create([
                     'bahan_baku_id'     => $request->bahan_baku_id,
-                    'user_id'           => auth()->id(),
+                    'user_id'           => Auth::id(),
                     'jumlah_awal'       => $request->jumlah_awal,
                     'sisa_stok'         => $request->jumlah_awal, // Sisa stok awal = jumlah masuk
                     'tanggal_kadaluarsa'=> $request->tanggal_kadaluarsa,
