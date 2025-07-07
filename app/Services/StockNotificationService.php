@@ -71,7 +71,9 @@ class StockNotificationService
 
             if ($batch->tanggal_kadaluarsa) {
                 $selisihHari = $today->diffInDays($batch->tanggal_kadaluarsa, false);
-                Log::info("  - Selisih Hari ke Kadaluarsa: {$selisihHari} hari.");
+                $selisihHariBulat = (int) ceil($today->diffInDays($batch->tanggal_kadaluarsa, false)); // Membulatkan ke atas untuk hari
+
+                Log::info("  - Selisih Hari ke Kadaluarsa: {$selisihHari} hari (Bulat: {$selisihHariBulat}).");
 
                 // Notifikasi Kadaluarsa
                 if ($selisihHari < 0 && $batch->sisa_stok > 0) {
@@ -79,7 +81,7 @@ class StockNotificationService
                     self::sendNotification(
                         $bahanBaku,
                         'Batch Kadaluarsa: ' . $bahanBaku->nama_bahan,
-                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') telah kadaluarsa pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '. Sisa stok: ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . '.'
+                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') telah kadaluarsa pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '. Terdapat ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . ' stok yang kadaluarsa di batch ini.' // Diperbarui
                     );
                     // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_kadaluarsa_terkirim)
                     // agar notifikasi ini hanya terkirim sekali per batch yang kadaluarsa.
@@ -90,7 +92,7 @@ class StockNotificationService
                     self::sendNotification(
                         $bahanBaku,
                         'Batch Hampir Kadaluarsa: ' . $bahanBaku->nama_bahan,
-                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') akan kadaluarsa dalam ' . $selisihHari . ' hari (pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '). Sisa stok: ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . '.'
+                        'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') akan kadaluarsa dalam ' . $selisihHariBulat . ' hari (pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '). Terdapat ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . ' stok yang akan kadaluarsa di batch ini.' // Diperbarui
                     );
                     // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_hampir_kadaluarsa_terkirim)
                     // agar notifikasi ini hanya terkirim sekali per batch yang hampir kadaluarsa.
@@ -155,7 +157,7 @@ class StockNotificationService
                                 'message' => $message
                             ]);
                         Log::info("Notifikasi WhatsApp untuk '{$subject}' berhasil dikirim ke {$owner->phone_number}.");
-                    } catch (\Exception | \GuzzleHttp\Exception\GuzzleException $e) { // Tangkap GuzzleException juga
+                    } catch (\Exception | \GuzzleHttp\Exception\GuzzleException $e) {
                         Log::error("Gagal mengirim notifikasi WhatsApp '{$subject}' ke {$owner->phone_number}: " . $e->getMessage());
                     }
                 }
