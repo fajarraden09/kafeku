@@ -39,7 +39,7 @@ class BahanKeluarController extends Controller
     /**
      * Menyimpan data bahan keluar & SINKRONISASI PENGURANGAN STOK (FEFO).
      */
-    public function store(Request $request)
+     public function store(Request $request)
     {
         Log::info('--- STEP 1: Memulai proses Bahan Keluar ---');
         Log::info('Data Request:', $request->all());
@@ -101,7 +101,8 @@ class BahanKeluarController extends Controller
             });
 
             Log::info('--- PROSES SELESAI ---');
-            return redirect()->route('owner.keluar.index')->with('success', 'Riwayat bahan keluar berhasil dicatat dan stok diperbarui.');
+            // PERBAIKAN: Mengubah route dari 'owner.keluar.index' menjadi 'owner.bahan_keluar'
+            return redirect()->route('owner.bahan_keluar')->with('success', 'Riwayat bahan keluar berhasil dicatat dan stok diperbarui.');
 
         } catch (Throwable $e) { // Tangkap Throwable untuk semua jenis error
             Log::error("Gagal mencatat bahan keluar: " . $e->getMessage());
