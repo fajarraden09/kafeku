@@ -19,8 +19,19 @@ class BatchBahanBaku extends Model
         'kode_batch',
         'jumlah_awal',
         'sisa_stok',
-        'tanggal_masuk',
+        'tanggal_masuk', // Pastikan kolom ini ada di tabel Anda jika digunakan
         'tanggal_kadaluarsa',
+    ];
+
+    /**
+     * Atribut yang harus di-cast ke tipe data tertentu.
+     * Mengubah kolom tanggal menjadi objek Carbon secara otomatis.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'tanggal_masuk'      => 'date', // Asumsi kolom ini ada di tabel Anda
+        'tanggal_kadaluarsa' => 'date',
     ];
 
     /**

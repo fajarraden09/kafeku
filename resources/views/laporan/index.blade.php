@@ -232,14 +232,14 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 55mm;
+                width: 58mm;
                 /* [FIX 1] Tambahkan baris ini untuk melawan class 'd-none' dari Bootstrap */
                 display: block !important;
             }
 
             /* Atur ukuran halaman cetak dan hapus margin default browser */
             @page {
-                size: 55mm auto;
+                size: 58mm auto;
                 /* Lebar 55mm, panjang otomatis */
                 margin: 2mm;
                 /* Beri sedikit margin untuk keamanan */
@@ -302,21 +302,21 @@
 
                         // HTML Nota (tidak ada perubahan di sini)
                         var receiptHtml = `
-                                <div style="font-family: 'Courier New', Courier, monospace; width: 100%; padding: 5px; font-size: 8pt; color: #000;">
+                                <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 10pt; color: #000;">
                                     <div style="text-align: center;">
-                                        <h3 style="margin: 0; font-size: 10pt;">SUGRIWA-SUBALI</h3>
+                                        <h3 style="margin: 0; font-size: 12pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
                                         <p style="margin: 0;">Jl. Tentara Pelajar, Wates, Kulon Progo</p>
                                         <p style="margin: 0;">Telp: 0896-1670-4229</p>
                                     </div>
                                     <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                    <table style="width: 100%; font-size: 8pt;">
+                                    <table style="width: 100%; font-size: 10pt;">
                                         <tr><td style="width:30%;">No Struk</td><td>: ${response.kode_transaksi}</td></tr>
                                         <tr><td>Tanggal</td><td>: ${formattedDate}</td></tr>
                                         <tr><td>Kasir</td><td>: ${response.user ? response.user.name : 'N/A'}</td></tr>
                                         <tr><td>Pelanggan</td><td>: ${response.nama_pelanggan ? response.nama_pelanggan : '-'}</td></tr>
                                     </table>
                                     <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                    <table style="width: 100%; font-size: 8pt;">`;
+                                    <table style="width: 100%; font-size: 10pt;">`;
 
                         response.detail_transaksi.forEach(function (item) {
                             var subtotal = item.jumlah * item.harga_saat_transaksi;
@@ -331,7 +331,7 @@
                         receiptHtml += `
                                     </table>
                                     <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                    <table style="width: 100%; font-size: 9pt; font-weight: bold;">
+                                    <table style="width: 100%; font-size: 10pt; font-weight: bold;">
                                         <tr><td>TOTAL</td><td style="text-align: right;">Rp ${Number(response.total_harga).toLocaleString('id-ID')}</td></tr>
                                         <tr><td>PEMBAYARAN</td><td style="text-align: right;">${response.metode_pembayaran}</td></tr>
                                     </table>

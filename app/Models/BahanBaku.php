@@ -33,4 +33,12 @@ class BahanBaku extends Model
     {
         return $this->hasMany(ResepMenu::class);
     }
+    
+    public function batches()
+    {
+        // Asumsi: 'bahan_baku_id' adalah foreign key di tabel 'batches'
+        // yang merujuk ke 'id' dari tabel 'bahan_baku'.
+    return $this->hasMany(BatchBahanBaku::class, 'bahan_baku_id');
+    }
+    
 }

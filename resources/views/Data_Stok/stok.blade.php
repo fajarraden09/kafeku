@@ -36,6 +36,7 @@
                                             <th>Sisa Stok</th>
                                             <th>Satuan</th>
                                             <th>Status Stok</th>
+                                            <th>Status Kadaluarsa</th> {{-- Tambahkan kolom ini --}}
                                             <th class="text-center">Action</th>
                                         </tr>
                                     </thead>
@@ -47,18 +48,34 @@
                                                 <td>{{ $d->stok }}</td>
                                                 <td>{{ $d->satuan }}</td>
                                                 <td>
+                                                    {{-- Logika Status Ketersediaan Stok --}}
                                                     @if ($d->stok == 0)
-                                                        {{-- Kondisi 1: Jika stok tepat 0, maka statusnya 'Habis' --}}
                                                         <span class="badge badge-dark">Habis</span>
-
                                                     @elseif ($d->stok <= $d->batas_minimum)
-                                                        {{-- Kondisi 2: Jika stok di bawah atau sama dengan batas minimum (tapi
-                                                        tidak 0), maka 'Hampir Habis' --}}
                                                         <span class="badge badge-danger">Hampir Habis</span>
-
                                                     @else
-                                                        {{-- Kondisi 3: Jika tidak keduanya, maka stok 'Aman' --}}
                                                         <span class="badge badge-success">Aman</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    {{-- Logika Status Kadaluarsa --}}
+                                                    @if ($d->tanggal_kadaluarsa_terdekat)
+                                                        @php
+                                                            $today = \Carbon\Carbon::now();
+                                                            $expiryDate = $d->tanggal_kadaluarsa_terdekat;
+                                                            // Hitung selisih hari. Parameter 'false' agar menghasilkan nilai negatif jika sudah kadaluarsa
+                                                            $diffInDays = $today->diffInDays($expiryDate, false);
+                                                        @endphp
+
+                                                        @if ($diffInDays < 0)
+                                                            <span class="badge badge-dark">Kadaluarsa</span>
+                                                        @elseif ($diffInDays <= 30) {{-- Misalnya, 30 hari sebagai ambang batas "hampir kadaluarsa" --}}
+                                                            <span class="badge badge-warning">Hampir Kadaluarsa</span>
+                                                        @else
+                                                            <span class="badge badge-info">Aman ({{ $expiryDate->format('d M Y') }})</span>
+                                                        @endif
+                                                    @else
+                                                        <span class="badge badge-secondary">Tidak Ada Batch</span>
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
