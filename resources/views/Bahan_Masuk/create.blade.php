@@ -25,8 +25,10 @@
                                 <div class="card-body">
                                     <div class="form-group">
                                         <label for="bahan_baku_id">Nama Bahan</label>
+                                        {{-- Tambahkan kelas 'select2' untuk mengaktifkan fitur pencarian --}}
                                         <select name="bahan_baku_id" id="bahan_baku_id"
-                                            class="form-control @error('bahan_baku_id') is-invalid @enderror">
+                                            class="form-control select2 @error('bahan_baku_id') is-invalid @enderror"
+                                            style="width: 100%;"> {{-- Penting untuk Select2 --}}
                                             <option value="">-- Pilih Bahan Baku --</option>
                                             @foreach ($bahan_baku as $bahan)
                                                 <option value="{{ $bahan->id }}" {{ old('bahan_baku_id') == $bahan->id ? 'selected' : '' }}>
@@ -62,3 +64,24 @@
         </section>
     </div>
 @endsection
+
+@push('scripts')
+    <!-- Pastikan jQuery sudah dimuat sebelum Select2 -->
+    <!-- Jika Anda menggunakan AdminLTE, jQuery biasanya sudah ada -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <!-- Opsional: Jika Anda ingin tema Bootstrap 4 untuk Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css"
+        rel="stylesheet" />
+
+    <script>
+        $(document).ready(function () {
+            // Inisialisasi Select2 pada elemen dengan ID 'bahan_baku_id'
+            $('#bahan_baku_id').select2({
+                placeholder: '-- Pilih Bahan Baku --', // Placeholder untuk Select2
+                allowClear: true, // Memungkinkan penghapusan pilihan
+                theme: 'bootstrap4' // Menggunakan tema Bootstrap 4 jika Anda memuat CSS-nya
+            });
+        });
+    </script>
+@endpush
