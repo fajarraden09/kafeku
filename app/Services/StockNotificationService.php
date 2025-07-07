@@ -3,12 +3,12 @@
 namespace App\Services;
 
 use App\Models\BahanBaku;
-use App\Models\User; // Tetap diperlukan jika Anda mengirim email/WhatsApp ke User
-use App\Mail\LowStockNotification; // Tetap diperlukan jika Anda mengirim email
-use Illuminate\Support\Facades\Mail; // Tetap diperlukan jika Anda mengirim email
-use Illuminate\Support\Facades\Http; // Tetap diperlukan jika Anda mengirim WhatsApp
+use App\Models\User;
+use App\Mail\LowStockNotification;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon; // Tambahkan ini: Import Carbon untuk manipulasi tanggal
+use Carbon\Carbon;
 
 class StockNotificationService
 {
@@ -20,70 +20,88 @@ class StockNotificationService
      */
     public static function checkAndNotify(BahanBaku $bahanBaku): void
     {
+        Log::info("--- Memulai checkAndNotify untuk BahanBaku: {$bahanBaku->nama_bahan} (ID: {$bahanBaku->id}) ---");
+
         // Muat ulang relasi batches untuk mendapatkan data tanggal kadaluarsa terbaru
-        // Ini penting karena BahanBaku yang masuk mungkin belum memuat relasi ini
         $bahanBaku->load('batches');
+        Log::info("Jumlah batch ditemukan untuk {$bahanBaku->nama_bahan}: {$bahanBaku->batches->count()}");
+
 
         // --- Notifikasi Stok Total (Habis / Rendah) ---
         // 1. Notifikasi Stok Habis
         if ($bahanBaku->stok <= 0) {
+            Log::info("Kondisi: Stok Habis ({$bahanBaku->stok} {$bahanBaku->satuan})");
             self::sendNotification(
-                $bahanBaku, // Pass $bahanBaku here
+                $bahanBaku,
                 'Stok Habis: ' . $bahanBaku->nama_bahan,
                 'Stok bahan baku "' . $bahanBaku->nama_bahan . '" telah habis.'
             );
-            // Tandai notifikasi sudah terkirim untuk stok total
             $bahanBaku->notifikasi_terkirim = true;
             $bahanBaku->save();
         }
         // 2. Notifikasi Stok Rendah (Hampir Habis) - hanya jika stok > 0 dan di bawah batas minimum
         elseif ($bahanBaku->stok > 0 && $bahanBaku->stok <= $bahanBaku->batas_minimum) {
-            // Kirim notifikasi HANYA JIKA notifikasi belum pernah terkirim untuk kondisi ini
+            Log::info("Kondisi: Stok Rendah ({$bahanBaku->stok} {$bahanBaku->satuan}, Batas Min: {$bahanBaku->batas_minimum})");
             if (!$bahanBaku->notifikasi_terkirim) {
                 self::sendNotification(
-                    $bahanBaku, // Pass $bahanBaku here
+                    $bahanBaku,
                     'Stok Rendah: ' . $bahanBaku->nama_bahan,
                     'Stok bahan baku "' . $bahanBaku->nama_bahan . '" hampir habis. Sisa: ' . $bahanBaku->stok . ' ' . $bahanBaku->satuan . '.'
                 );
-                // Tandai notifikasi sudah terkirim untuk stok total
                 $bahanBaku->notifikasi_terkirim = true;
                 $bahanBaku->save();
+            } else {
+                Log::info("Notifikasi stok rendah sudah terkirim sebelumnya untuk {$bahanBaku->nama_bahan}. Tidak mengirim lagi.");
             }
         }
         // 3. Reset Notifikasi Stok jika sudah Aman (stok > batas_minimum)
         else {
+            Log::info("Kondisi: Stok Aman ({$bahanBaku->stok} {$bahanBaku->satuan}, Batas Min: {$bahanBaku->batas_minimum})");
             self::resetNotificationFlag($bahanBaku);
         }
 
         // --- Notifikasi Kadaluarsa (berdasarkan batch) ---
         $today = Carbon::now();
+        Log::info("Tanggal Hari Ini: " . $today->format('Y-m-d'));
 
         foreach ($bahanBaku->batches as $batch) {
+            Log::info("Memeriksa Batch ID: {$batch->id} untuk {$bahanBaku->nama_bahan}");
+            Log::info("  - Tanggal Kadaluarsa Batch: " . ($batch->tanggal_kadaluarsa ? $batch->tanggal_kadaluarsa->format('Y-m-d') : 'NULL'));
+            Log::info("  - Sisa Stok Batch: {$batch->sisa_stok}");
+
             if ($batch->tanggal_kadaluarsa) {
                 $selisihHari = $today->diffInDays($batch->tanggal_kadaluarsa, false);
+                Log::info("  - Selisih Hari ke Kadaluarsa: {$selisihHari} hari.");
 
                 // Notifikasi Kadaluarsa
-                if ($selisihHari < 0 && $batch->sisa_stok > 0) { // Hanya notifikasi jika masih ada stok di batch
+                if ($selisihHari < 0 && $batch->sisa_stok > 0) {
+                    Log::info("Kondisi: Batch Kadaluarsa.");
                     self::sendNotification(
-                        $bahanBaku, // Pass $bahanBaku here
+                        $bahanBaku,
                         'Batch Kadaluarsa: ' . $bahanBaku->nama_bahan,
                         'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') telah kadaluarsa pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '. Sisa stok: ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . '.'
                     );
-                    // Anda bisa menambahkan flag di tabel batch_bahan_baku jika ingin notifikasi ini hanya sekali per batch
-                    // Contoh: $batch->notifikasi_kadaluarsa_terkirim = true; $batch->save();
+                    // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_kadaluarsa_terkirim)
+                    // agar notifikasi ini hanya terkirim sekali per batch yang kadaluarsa.
                 }
                 // Notifikasi Hampir Kadaluarsa (misal: dalam 30 hari ke depan)
-                elseif ($selisihHari >= 0 && $selisihHari <= 30 && $batch->sisa_stok > 0) { // Hanya notifikasi jika masih ada stok di batch
+                elseif ($selisihHari >= 0 && $selisihHari <= 30 && $batch->sisa_stok > 0) {
+                    Log::info("Kondisi: Batch Hampir Kadaluarsa.");
                     self::sendNotification(
-                        $bahanBaku, // Pass $bahanBaku here
+                        $bahanBaku,
                         'Batch Hampir Kadaluarsa: ' . $bahanBaku->nama_bahan,
                         'Batch bahan baku "' . $bahanBaku->nama_bahan . '" (ID Batch: ' . $batch->id . ') akan kadaluarsa dalam ' . $selisihHari . ' hari (pada ' . $batch->tanggal_kadaluarsa->format('d-m-Y') . '). Sisa stok: ' . $batch->sisa_stok . ' ' . $bahanBaku->satuan . '.'
                     );
-                    // Anda bisa menambahkan flag di tabel batch_bahan_baku jika ingin notifikasi ini hanya sekali per batch
-                    // Contoh: $batch->notifikasi_hampir_kadaluarsa_terkirim = true; $batch->save();
+                    // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_hampir_kadaluarsa_terkirim)
+                    // agar notifikasi ini hanya terkirim sekali per batch yang hampir kadaluarsa.
+                } else {
+                    Log::info("Kondisi: Batch Aman (belum mendekati kadaluarsa atau stok habis).");
                 }
+            } else {
+                Log::info("  - Batch ID: {$batch->id} tidak memiliki tanggal kadaluarsa.");
             }
         }
+        Log::info("--- Selesai checkAndNotify untuk BahanBaku: {$bahanBaku->nama_bahan} ---");
     }
 
     /**
@@ -104,8 +122,6 @@ class StockNotificationService
 
     /**
      * Metode untuk mengirimkan notifikasi.
-     * Anda bisa mengembangkan ini untuk mengirim email, notifikasi dashboard, dll.
-     * Saat ini akan mencoba mengirim email/WhatsApp (jika konfigurasi ada) dan mencatat ke log Laravel.
      *
      * @param BahanBaku $bahanBaku Objek BahanBaku yang terkait dengan notifikasi.
      * @param string $subject Subjek notifikasi.
@@ -116,11 +132,10 @@ class StockNotificationService
     {
         Log::warning("[NOTIFIKASI STOK] {$subject}: {$message}");
 
-        // Dapatkan SEMUA owner untuk pengiriman notifikasi
-        $owners = User::where('role', 'owner')->get(); // Mengambil semua owner
+        $owners = User::where('role', 'owner')->get();
 
-        if ($owners->isNotEmpty()) { // Memastikan ada owner yang ditemukan
-            foreach ($owners as $owner) { // Loop melalui setiap owner
+        if ($owners->isNotEmpty()) {
+            foreach ($owners as $owner) {
                 // 1. Kirim Email
                 if ($owner->email) {
                     try {
@@ -140,7 +155,7 @@ class StockNotificationService
                                 'message' => $message
                             ]);
                         Log::info("Notifikasi WhatsApp untuk '{$subject}' berhasil dikirim ke {$owner->phone_number}.");
-                    } catch (\Exception $e) {
+                    } catch (\Exception | \GuzzleHttp\Exception\GuzzleException $e) { // Tangkap GuzzleException juga
                         Log::error("Gagal mengirim notifikasi WhatsApp '{$subject}' ke {$owner->phone_number}: " . $e->getMessage());
                     }
                 }
