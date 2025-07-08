@@ -232,18 +232,27 @@
                 visibility: visible;
             }
 
-            /* Atur posisi area cetak ke sudut kiri atas */
+            /* Hapus properti posisi absolut dan lebar tetap agar browser mengatur sendiri */
             #printable-area {
+                /* position: absolute; */
+                /* left: 0; */
+                /* top: 0; */
+                /* width: 384px; */
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 58mm;
                 /* [FIX 1] Tambahkan baris ini untuk melawan class 'd-none' dari Bootstrap */
                 display: block !important;
+                /* Opsional: Tingkatkan ukuran font keseluruhan di area cetak */
+                font-size: 12pt; /* Contoh: Meningkatkan ukuran font dasar */
             }
 
             /* Atur ukuran halaman cetak dan hapus margin default browser */
             @page {
+                /* Hapus ukuran halaman yang spesifik, biarkan browser menentukan */
+                /* size: 384px auto; */
+                margin: 5mm; /* Bisa disesuaikan marginnya */
                 size: 58mm auto;
                 /* Lebar 58mm, panjang otomatis */
                 margin: 2mm;
@@ -254,6 +263,19 @@
             body {
                 margin: 0;
                 padding: 0;
+            }
+
+            /* Opsional: Sesuaikan ukuran font untuk elemen tertentu jika diperlukan */
+            #printable-area h3 {
+                font-size: 16pt !important; /* Contoh: Membuat judul lebih besar */
+            }
+
+            #printable-area table {
+                font-size: 12pt !important; /* Contoh: Membuat teks tabel lebih besar */
+            }
+
+            #printable-area p {
+                font-size: 11pt !important; /* Contoh: Membuat teks paragraf lebih besar */
             }
         }
     </style>
@@ -294,7 +316,7 @@
                 $(modalSelector).modal('show');
             });
 
-            // [PERUBAHAN 3] Event listener untuk tombol Cetak Nota dengan HTML yang disesuaikan
+            // Event listener untuk tombol Cetak Nota
             table.on('click', '.btn-print', function (e) {
                 e.preventDefault();
                 console.log("DEBUG: Tombol CETAK diklik!");
@@ -307,8 +329,49 @@
                         var date = new Date(response.created_at);
                         var formattedDate = ('0' + date.getDate()).slice(-2) + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + date.getFullYear() + ' ' + ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
 
-                        // HTML Nota (tidak ada perubahan di sini)
+                        // HTML Nota
+                        // Saya menaikkan ukuran font di sini untuk teks-teks utama
                         var receiptHtml = `
+                                    <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 11pt; color: #000;">
+                                        <div style="text-align: center;">
+                                            <h3 style="margin: 0; font-size: 16pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
+                                            <p style="margin: 0; font-size: 12pt;">Jl. Tentara Pelajar, Wates, Kulon Progo</p>
+                                            <p style="margin: 0; font-size: 12pt;">Telp: 0896-1670-4229</p>
+                                        </div>
+                                        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+                                        <table style="width: 100%; font-size: 12pt;">
+                                    <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 10pt; color: #000;">
+                                        <div style="text-align: center;">
+                                            <h3 style="margin: 0; font-size: 12pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
+                                            <p style="margin: 0;">Jl. Tentara Pelajar, Wates, Kulon Progo</p>
+                                            <p style="margin: 0;">Telp: 0896-1670-4229</p>
+                                        </div>
+                                        <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                        <table style="width: 100%; font-size: 10pt;">
+                                            <tr><td style="width:30%;">No Struk</td><td>: ${response.kode_transaksi}</td></tr>
+                                            <tr><td>Tanggal</td><td>: ${formattedDate}</td></tr>
+                                            <tr><td>Kasir</td><td>: ${response.user ? response.user.name : 'N/A'}</td></tr>
+                                            <tr><td>Pelanggan</td><td>: ${response.nama_pelanggan ? response.nama_pelanggan : '-'}</td></tr>
+                                        </table>
+                                        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+                                        <table style="width: 100%; font-size: 12pt;">`;
+                                        <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                        <table style="width: 100%; font-size: 10pt;">`;
+                                        <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 10pt; color: #000;">
+                                            <div style="text-align: center;">
+                                                <h3 style="margin: 0; font-size: 12pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
+                                                <p style="margin: 0;">Jl. Tentara Pelajar, Wates, Kulon Progo</p>
+                                                <p style="margin: 0;">Telp: 0896-1670-4229</p>
+                                            </div>
+                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                            <table style="width: 100%; font-size: 10pt;">
+                                                <tr><td style="width:30%;">No Struk</td><td>: ${response.kode_transaksi}</td></tr>
+                                                <tr><td>Tanggal</td><td>: ${formattedDate}</td></tr>
+                                                <tr><td>Kasir</td><td>: ${response.user ? response.user.name : 'N/A'}</td></tr>
+                                                <tr><td>Pelanggan</td><td>: ${response.nama_pelanggan ? response.nama_pelanggan : '-'}</td></tr>
+                                            </table>
+                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                            <table style="width: 100%; font-size: 10pt;">`;
                                                 <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 10pt; color: #000;">
                                                     <div style="text-align: center;">
                                                         <h3 style="margin: 0; font-size: 12pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
@@ -336,6 +399,45 @@
                         });
 
                         receiptHtml += `
+                                        </table>
+                                        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+                                        <table style="width: 100%; font-size: 14pt; font-weight: bold;">
+                                            <tr><td>TOTAL</td><td style="text-align: right;">Rp ${Number(response.total_harga).toLocaleString('id-ID')}</td></tr>
+                                            <tr><td>PEMBAYARAN</td><td style="text-align: right;">${response.metode_pembayaran}</td></tr>
+                                        </table>
+                                        <hr style="border-top: 1px dashed #000; margin: 10px 0;">
+                                        <div style="text-align: center; margin-top: 15px">
+                                            <p style="margin: 0; font-size: 12pt;">Wifi : Sugriwa Subali</p>
+                                            <p style="margin: 0; font-size: 12pt;">Sandi: malamminggu</p>
+                                            <p style="margin-top: 15px; font-size: 12pt;">Terima Kasih Atas Kunjungan Anda</p>
+                                        <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                        <table style="width: 100%; font-size: 10pt; font-weight: bold;">
+                                            <tr><td>TOTAL</td><td style="text-align: right;">Rp ${Number(response.total_harga).toLocaleString('id-ID')}</td></tr>
+                                            <tr><td>PEMBAYARAN</td><td style="text-align: right;">${response.metode_pembayaran}</td></tr>
+                                        </table>
+                                        <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                        <div style="text-align: center; margin-top: 10px">
+                                            <p style="margin: 0";>Wifi : Sugriwa Subali</p>
+                                            <p style="margin: 0";>Sandi: malamminggu</p>
+                                            <p style="margin-top: 10px";>Terima Kasih Atas Kunjungan Anda</p>
+                                        </div>
+                                        <div style="text-align: center; ">
+                                            </table>
+                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                            <table style="width: 100%; font-size: 10pt; font-weight: bold;">
+                                                <tr><td>TOTAL</td><td style="text-align: right;">Rp ${Number(response.total_harga).toLocaleString('id-ID')}</td></tr>
+                                                <tr><td>PEMBAYARAN</td><td style="text-align: right;">${response.metode_pembayaran}</td></tr>
+                                            </table>
+                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                            <div style="text-align: center; margin-top: 10px">
+                                                <p style="margin: 0";>Wifi : Sugriwa Subali</p>
+                                                <p style="margin: 0";>Sandi: malamminggu</p>
+                                                <p style="margin-top: 10px";>Terima Kasih Atas Kunjungan Anda</p>
+                                            </div>
+                                            <div style="text-align: center; ">
+                                            </div>
+                                        </div>
+                                        `;
                                                     </table>
                                                     <hr style="border-top: 1px dashed #000; margin: 5px 0;">
                                                     <table style="width: 100%; font-size: 10pt; font-weight: bold;">
@@ -357,10 +459,10 @@
                         // Masukkan HTML ke area cetak
                         $('#printable-area').html(receiptHtml);
 
-                        // [FIX 2] Beri jeda sebelum mencetak untuk memastikan konten sudah dirender
+                        // Beri jeda sebelum mencetak untuk memastikan konten sudah dirender
                         setTimeout(function () {
                             window.print();
-                        }, 100); // Jeda 100 milidetik sudah cukup
+                        }, 100);
 
                     },
                     error: function () {
