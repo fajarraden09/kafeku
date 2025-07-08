@@ -35,10 +35,7 @@ class LaporanController extends Controller
     {
         // Eager load relasi yang dibutuhkan untuk detail dan nota
         $transaksi = Transaksi::with('detailTransaksi.menu', 'user')->findOrFail($id);
-
-        dd($transaksi); // <--- TAMBAHKAN BARIS INI UNTUK DEBUGGING
-
-        // return response()->json($transaksi); // Baris ini tidak akan tereksekusi sementara ada dd()
+        return response()->json($transaksi);
     }
 
     /**
