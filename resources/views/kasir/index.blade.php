@@ -77,8 +77,8 @@
                     </div>
 
                     {{-- Kolom Pesanan dengan ID untuk CSS --}}
-                    <div class="col-md-5" id="kolom-pesanan">
-                        <div class="card">
+                    <div class="col-md-5">
+                        <div class="card" id="kartu-pesanan">
                             <div class="card-header">
                                 <h3 class="card-title">Pesanan</h3>
                             </div>
@@ -140,17 +140,6 @@
         </section>
     </div>
 @endsection
-
-{{-- Kode CSS untuk membuat kartu pesanan sticky --}}
-<style>
-    #kolom-pesanan {
-        position: -webkit-sticky;
-        /* Untuk kompatibilitas Safari */
-        position: sticky;
-        top: 20px;
-        /* Atur jarak dari atas layar saat menempel */
-    }
-</style>
 
 @push('scripts')
     <script>
@@ -251,24 +240,24 @@
                 });
             });
 
-            // === SCRIPT BARU UNTUK STICKY CARD PESANAN ===
-            const orderColumn = document.getElementById('kolom-pesanan');
+            // === SCRIPT STICKY CARD YANG DISEMPURNAKAN ===
+            const orderCard = document.getElementById('kartu-pesanan');
 
-            // Cek jika elemennya ada
-            if (orderColumn) {
-                const initialTop = orderColumn.offsetTop;
-                const initialWidth = orderColumn.offsetWidth;
+            if (orderCard) {
+                const parentColumn = orderCard.parentElement;
+                const initialTop = orderCard.offsetTop;
 
                 window.addEventListener('scroll', function () {
+                    // Cek posisi scroll halaman
                     if (window.pageYOffset > initialTop) {
-                        // Membuat kartu "menempel"
-                        orderColumn.style.position = 'fixed';
-                        orderColumn.style.top = '20px'; // Jarak dari atas
-                        orderColumn.style.width = initialWidth + 'px'; // Menjaga lebar kartu tetap sama
+                        // Terapkan style sticky
+                        orderCard.style.position = 'fixed';
+                        orderCard.style.top = '20px';
+                        orderCard.style.width = parentColumn.offsetWidth + 'px'; // Atur lebar kartu agar sama dengan lebar kolom induknya
                     } else {
-                        // Mengembalikan kartu ke posisi semula
-                        orderColumn.style.position = 'static';
-                        orderColumn.style.width = 'auto';
+                        // Kembalikan ke style semula
+                        orderCard.style.position = 'static';
+                        orderCard.style.width = 'auto';
                     }
                 });
             }
