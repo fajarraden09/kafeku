@@ -76,7 +76,8 @@
                         </div>
                     </div>
 
-                    <div class="col-md-5">
+                    {{-- Kolom Pesanan dengan ID untuk CSS --}}
+                    <div class="col-md-5" id="kolom-pesanan">
                         <div class="card">
                             <div class="card-header">
                                 <h3 class="card-title">Pesanan</h3>
@@ -139,6 +140,17 @@
         </section>
     </div>
 @endsection
+
+{{-- Kode CSS untuk membuat kartu pesanan sticky --}}
+<style>
+    #kolom-pesanan {
+        position: -webkit-sticky;
+        /* Untuk kompatibilitas Safari */
+        position: sticky;
+        top: 20px;
+        /* Atur jarak dari atas layar saat menempel */
+    }
+</style>
 
 @push('scripts')
     <script>
