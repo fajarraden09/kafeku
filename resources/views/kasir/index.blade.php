@@ -186,8 +186,6 @@
                 totalPriceEl.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
             }
 
-            // Event listener untuk tombol "Tambah"
-            // Kita gunakan event delegation pada #menu-container agar berfungsi dinamis
             document.getElementById('menu-container').addEventListener('click', function (e) {
                 if (e.target && e.target.classList.contains('btn-add-to-cart')) {
                     const id = e.target.dataset.id;
@@ -252,6 +250,28 @@
                     });
                 });
             });
+
+            // === SCRIPT BARU UNTUK STICKY CARD PESANAN ===
+            const orderColumn = document.getElementById('kolom-pesanan');
+
+            // Cek jika elemennya ada
+            if (orderColumn) {
+                const initialTop = orderColumn.offsetTop;
+                const initialWidth = orderColumn.offsetWidth;
+
+                window.addEventListener('scroll', function () {
+                    if (window.pageYOffset > initialTop) {
+                        // Membuat kartu "menempel"
+                        orderColumn.style.position = 'fixed';
+                        orderColumn.style.top = '20px'; // Jarak dari atas
+                        orderColumn.style.width = initialWidth + 'px'; // Menjaga lebar kartu tetap sama
+                    } else {
+                        // Mengembalikan kartu ke posisi semula
+                        orderColumn.style.position = 'static';
+                        orderColumn.style.width = 'auto';
+                    }
+                });
+            }
 
         });
     </script>
