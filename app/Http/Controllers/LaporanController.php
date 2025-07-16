@@ -13,20 +13,30 @@ use Carbon\Carbon;
 
 class LaporanController extends Controller
 {
-    /**
-     * Menampilkan halaman utama laporan dengan daftar semua transaksi.
-     */
     public function index(Request $request)
     {
         $query = Transaksi::with('user')->latest();
+        $tanggal_pencarian = null; // Inisialisasi variabel tanggal
 
-        if ($request->has('status') && $request->status == 'Belum Dibayar') {
+        // Kondisi 1: Jika ada input tanggal dari form pencarian
+        if ($request->has('tanggal') && $request->tanggal) {
+            $tanggal_pencarian = Carbon::parse($request->tanggal)->format('Y-m-d');
+            $query->whereDate('created_at', $tanggal_pencarian);
+        }
+        // Kondisi 2: Jika ada filter status "Belum Dibayar"
+        elseif ($request->has('status') && $request->status == 'Belum Dibayar') {
             $query->where('status_pembayaran', 'Belum Dibayar');
         }
+        // Jika tidak ada filter, query akan mengambil semua data (default)
 
         $transaksi = $query->get();
 
-        return view('laporan.index', compact('transaksi'));
+        // Kirim variabel $tanggal_pencarian ke view untuk ditampilkan di input
+        return view('laporan.index', [
+            'transaksi' => $transaksi,
+            'tanggal_pencarian' => $tanggal_pencarian,
+            'isLaporanHarian' => false // Penanda bahwa ini BUKAN laporan harian
+        ]);
     }
 
     /**
