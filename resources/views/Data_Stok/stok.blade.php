@@ -72,7 +72,7 @@
                                                             @endphp
 
                                                             @if ($diffInDays < 0)
-                                                                <span class="badge badge-dark">Kadaluarsa</span>
+                                                                <span class="badge badge-dark">Sudah Kadaluarsa</span>
                                                             @elseif ($diffInDays <= 15)
                                                                 <span class="badge badge-warning text-dark">Hampir Kadaluarsa</span>
                                                             @else
