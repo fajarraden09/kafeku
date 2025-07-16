@@ -8,7 +8,8 @@ use App\Models\BahanBakuKeluar;
 use App\Models\BahanBaku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log; // Ditambahkan untuk logging error
+use Illuminate\Support\Facades\Log;
+use Carbon\Carbon; 
 
 class LaporanController extends Controller
 {
@@ -36,6 +37,25 @@ class LaporanController extends Controller
         // Eager load relasi yang dibutuhkan untuk detail dan nota
         $transaksi = Transaksi::with('detailTransaksi.menu', 'user')->findOrFail($id);
         return response()->json($transaksi);
+    }
+
+    /**
+     * Menampilkan laporan transaksi khusus untuk hari ini.
+     */
+    public function laporanHarian()
+    {
+        // Mengambil semua transaksi hanya untuk hari ini
+        $transaksiHarian = Transaksi::whereDate('created_at', Carbon::today())->latest()->get();
+
+        // Menghitung total pendapatan hanya untuk hari ini
+        $totalPendapatanHarian = $transaksiHarian->sum('total_harga');
+
+        // Mengirim data ke view yang sama (laporan.index)
+        return view('laporan.index', [
+            'transaksi' => $transaksiHarian,
+            'totalPendapatanHarian' => $totalPendapatanHarian,
+            'isLaporanHarian' => true // Flag untuk menandai ini adalah laporan harian
+        ]);
     }
 
     /**
