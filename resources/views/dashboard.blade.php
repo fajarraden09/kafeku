@@ -39,7 +39,7 @@
                             <div class="icon">
                                 <i class="ion ion-ios-timer-outline"></i>
                             </div>
-                            <a href="{{ route('owner.laporan.stok') }}" class="small-box-footer">Lihat Detail <i
+                            <a href="{{ route('owner.bahan_baku') }}" class="small-box-footer">Lihat Detail <i
                                     class="fas fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
