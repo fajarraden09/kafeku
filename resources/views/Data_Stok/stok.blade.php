@@ -54,7 +54,7 @@
                                                     @elseif ($d->stok <= $d->batas_minimum)
                                                         <span class="badge badge-danger">Hampir Habis</span>
                                                     @else
-                                                        <span class="badge badge-success">Aman</span>
+                                                        <span class="badge badge-success">Tersedia</span>
                                                     @endif
                                                 </td>
                                                 <td>
