@@ -13,9 +13,6 @@
                 <div class="row">
                     <div class="col-md-7">
                         <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">Pilih Menu</h3>
-                            </div>
 
                             <div class="card-header d-flex p-0">
                                 <ul class="nav nav-pills p-2">
@@ -69,9 +66,6 @@
                     {{-- Kolom Pesanan dengan ID untuk CSS --}}
                     <div class="col-md-5">
                         <div class="card" id="kartu-pesanan">
-                            <div class="card-header">
-                                <h3 class="card-title">Pesanan</h3>
-                            </div>
                             <div class="card-body">
                                 <form action="{{ route('owner.kasir.store') }}" method="POST" id="order-form">
                                     @csrf
