@@ -45,6 +45,24 @@
                                             </div>
                                             <div class="card-body text-center d-flex flex-column">
                                                 <h5 class="card-title flex-grow-1">{{ $menu->nama_menu }}</h5>
+                                                <div class="mb-2">
+                                                    @php
+                                                        $sisaPorsi = $menu->sisa_porsi;
+                                                        $badgeClass = 'bg-success'; // Default warna hijau
+                                                        $text = 'Porsi Tersedia: ' . $sisaPorsi;
+
+                                                        if ($sisaPorsi === INF) {
+                                                            $badgeClass = 'bg-secondary';
+                                                            $text = 'Tanpa Stok';
+                                                        } elseif ($sisaPorsi <= 0) {
+                                                            $badgeClass = 'bg-danger';
+                                                            $text = 'Stok Habis';
+                                                        } elseif ($sisaPorsi <= 5) { // Batas stok rendah (bisa diubah)
+                                                            $badgeClass = 'bg-warning text-dark';
+                                                        }
+                                                    @endphp
+                                                    <span class="badge {{ $badgeClass }}">{{ $text }}</span>
+                                                </div>
                                                 <p class="card-text">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
                                                 <button class="btn btn-primary btn-sm btn-add-to-cart mt-auto"
                                                     data-id="{{ $menu->id }}" data-name="{{ $menu->nama_menu }}"

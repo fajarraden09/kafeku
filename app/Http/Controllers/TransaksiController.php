@@ -23,13 +23,43 @@ class TransaksiController extends Controller
      */
     public function index()
     {
-        // Ambil semua menu yang status ketersediaannya true
-        $menus = Menu::where('ketersediaan', true)->get();
-
-        // Ambil semua kategori untuk tombol filter
+        // 1. Ambil semua menu dengan relasi resep & bahan baku (Eager Loading)
+        $menus = Menu::with('resep.bahanBaku')->get();
         $kategori = Kategori::all();
 
-        // Kirim KEDUA variabel ini ke view
+        // 2. Loop melalui setiap menu untuk menghitung sisa porsi
+        foreach ($menus as $menu) {
+            // Jika menu tidak punya resep, anggap porsinya tidak terbatas
+            if ($menu->resep->isEmpty()) {
+                $menu->sisa_porsi = INF; // INF adalah konstanta PHP untuk Infinity
+                continue; // Lanjut ke menu berikutnya
+            }
+
+            $porsiTersediaPerBahan = [];
+            // 3. Loop melalui setiap bahan dalam resep menu ini
+            foreach ($menu->resep as $resepItem) {
+                $bahanBaku = $resepItem->bahanBaku;
+                $jumlahDibutuhkan = $resepItem->jumlah_dibutuhkan;
+
+                // Lewati jika bahan baku tidak ada atau jumlah dibutuhkan adalah 0
+                if (!$bahanBaku || $jumlahDibutuhkan <= 0) {
+                    continue;
+                }
+
+                // 4. Hitung: Berapa porsi yang bisa dibuat dari stok bahan ini?
+                $porsiDariBahanIni = floor($bahanBaku->stok / $jumlahDibutuhkan);
+                $porsiTersediaPerBahan[] = $porsiDariBahanIni;
+            }
+
+            // 5. Tentukan sisa porsi dari nilai terkecil (bahan yang paling sedikit)
+            if (empty($porsiTersediaPerBahan)) {
+                $menu->sisa_porsi = 0; // Jika tidak ada resep valid, porsi 0
+            } else {
+                $menu->sisa_porsi = min($porsiTersediaPerBahan);
+            }
+        }
+
+        // 6. Kirim data menu yang sudah memiliki properti 'sisa_porsi' ke view
         return view('kasir.index', compact('menus', 'kategori'));
     }
 
