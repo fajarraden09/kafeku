@@ -48,7 +48,7 @@
                                                 <div class="mb-2">
                                                     @php
                                                         $sisaPorsi = $menu->sisa_porsi;
-                                                        $badgeClass = 'bg-success'; // Default warna hijau
+                                                        $badgeClass = 'bg-success';
                                                         $text = 'Porsi Tersedia: ' . $sisaPorsi;
 
                                                         if ($sisaPorsi === INF) {
@@ -57,11 +57,12 @@
                                                         } elseif ($sisaPorsi <= 0) {
                                                             $badgeClass = 'bg-danger';
                                                             $text = 'Stok Habis';
-                                                        } elseif ($sisaPorsi <= 5) { // Batas stok rendah (bisa diubah)
+                                                        } elseif ($sisaPorsi <= 5) {
                                                             $badgeClass = 'bg-warning text-dark';
                                                         }
                                                     @endphp
-                                                    <span class="badge {{ $badgeClass }}">{{ $text }}</span>
+                                                    <span class="badge {{ $badgeClass }}"
+                                                        id="sisa-porsi-{{ $menu->id }}">{{ $text }}</span>
                                                 </div>
                                                 <p class="card-text">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
                                                 <button class="btn btn-primary btn-sm btn-add-to-cart mt-auto"
