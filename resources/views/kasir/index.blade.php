@@ -95,12 +95,16 @@
 
                                     <div class="mt-3">
                                         <strong>Metode Pembayaran:</strong>
-                                        <div class="form-check"><input class="form-check-input" type="radio"
-                                                name="metode_pembayaran" id="metodeTunai" value="Tunai" checked><label
-                                                class="form-check-label" for="metodeTunai">Tunai</label></div>
-                                        <div class="form-check"><input class="form-check-input" type="radio"
-                                                name="metode_pembayaran" id="metodeQR" value="QR-code"><label
-                                                class="form-check-label" for="metodeQR">QR-code</label></div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="metode_pembayaran"
+                                                id="metodeTunai" value="Tunai" checked>
+                                            <label class="form-check-label" for="metodeTunai">Tunai</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="metode_pembayaran"
+                                                id="metodeQR" value="QR-code">
+                                            <label class="form-check-label" for="metodeQR">QR-code</label>
+                                        </div>
                                     </div>
 
                                     <div class="mt-3">
