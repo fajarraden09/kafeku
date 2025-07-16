@@ -65,8 +65,10 @@
                                                 </div>
                                                 <p class="card-text">Rp {{ number_format($menu->harga, 0, ',', '.') }}</p>
                                                 <button class="btn btn-primary btn-sm btn-add-to-cart mt-auto"
-                                                    data-id="{{ $menu->id }}" data-name="{{ $menu->nama_menu }}"
-                                                    data-price="{{ $menu->harga }}">
+                                                    id="btn-tambah-{{ $menu->id }}" data-id="{{ $menu->id }}"
+                                                    data-name="{{ $menu->nama_menu }}" data-price="{{ $menu->harga }}"
+                                                    data-sisa-porsi="{{ is_numeric($sisaPorsi) ? $sisaPorsi : -1 }}" {{-- -1
+                                                    untuk tak terhingga --}} {{ $sisaPorsi <= 0 && is_numeric($sisaPorsi) ? 'disabled' : '' }}>
                                                     Tambah
                                                 </button>
                                             </div>
@@ -195,9 +197,43 @@
     <script>
         document.addEventListener('DOMContentLoaded', function () {
 
-            // === BAGIAN KERANJANG BELANJA (CART) ===
-            // ... (Fungsi cart Anda tetap sama, tidak perlu diubah) ...
             let cart = {};
+            // Obyek baru untuk menyimpan state sisa porsi semua menu
+            const sisaPorsiState = {};
+
+            // Fungsi untuk memperbarui tampilan badge dan tombol
+            function updatePorsiDisplay(menuId, sisa) {
+                const badge = document.getElementById(`sisa-porsi-${menuId}`);
+                const button = document.getElementById(`btn-tambah-${menuId}`);
+                if (!badge || !button) return;
+
+                let badgeClass = 'bg-success';
+                let text = `Porsi Tersedia: ${sisa}`;
+                let isDisabled = false;
+
+                // Logika pewarnaan badge dan status tombol
+                if (sisa === -1) { // -1 menandakan tak terhingga
+                    badgeClass = 'bg-secondary';
+                    text = 'Tanpa Stok';
+                } else if (sisa <= 0) {
+                    badgeClass = 'bg-danger';
+                    text = 'Stok Habis';
+                    isDisabled = true;
+                } else if (sisa <= 5) {
+                    badgeClass = 'bg-warning text-dark';
+                }
+
+                badge.className = `badge ${badgeClass}`;
+                badge.textContent = text;
+                button.disabled = isDisabled;
+            }
+
+            // Saat halaman dimuat, isi sisaPorsiState dengan data awal dari server
+            document.querySelectorAll('.btn-add-to-cart').forEach(button => {
+                const menuId = button.dataset.id;
+                const sisa = parseInt(button.dataset.sisaPorsi);
+                sisaPorsiState[menuId] = sisa;
+            });
 
             function renderCart() {
                 const cartItemsContainer = document.getElementById('cart-items');
@@ -209,6 +245,22 @@
                 let totalPrice = 0;
                 let index = 0;
 
+                // Hitung ulang semua sisa porsi dari awal
+                const sisaPorsiSaatIni = { ...sisaPorsiState }; // Salin state awal
+
+                // Kurangi sisa porsi berdasarkan item yang ada di keranjang
+                for (const id in cart) {
+                    if (sisaPorsiSaatIni[id] !== -1) { // Jangan kurangi jika stok tak terhingga
+                        sisaPorsiSaatIni[id] -= cart[id].jumlah;
+                    }
+                }
+
+                // Perbarui tampilan badge untuk SEMUA menu
+                for (const menuId in sisaPorsiState) {
+                    updatePorsiDisplay(menuId, sisaPorsiSaatIni[menuId]);
+                }
+
+                // Render item di keranjang pesanan
                 for (const id in cart) {
                     const item = cart[id];
                     const subtotal = item.price * item.jumlah;
@@ -223,12 +275,22 @@
                     hiddenInputsContainer.insertAdjacentHTML('beforeend', hiddenJumlah);
                     index++;
                 }
+
                 totalPriceEl.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
             }
 
+            // Event listener untuk tombol "Tambah"
             document.getElementById('menu-container').addEventListener('click', function (e) {
                 if (e.target && e.target.classList.contains('btn-add-to-cart')) {
                     const id = e.target.dataset.id;
+
+                    // Cek sisa porsi sebelum menambah
+                    const sisaSekarang = (sisaPorsiState[id] - (cart[id] ? cart[id].jumlah : 0));
+                    if (sisaSekarang <= 0 && sisaPorsiState[id] !== -1) {
+                        alert('Stok untuk menu ini sudah habis!');
+                        return;
+                    }
+
                     const name = e.target.dataset.name;
                     const price = parseFloat(e.target.dataset.price);
 
@@ -241,14 +303,24 @@
                 }
             });
 
+            // Event listener lainnya (tidak berubah, hanya memanggil renderCart())
             document.getElementById('cart-items').addEventListener('change', function (e) {
                 if (e.target.classList.contains('cart-item-qty')) {
                     const id = e.target.dataset.id;
                     const newJumlah = parseInt(e.target.value);
-                    if (newJumlah > 0) {
-                        cart[id].jumlah = newJumlah;
-                    } else {
-                        delete cart[id];
+                    if (newJumlah >= 0) { // Izinkan 0 untuk hapus
+                        const sisaAsli = sisaPorsiState[id];
+                        if (newJumlah > sisaAsli && sisaAsli !== -1) {
+                            alert(`Stok tidak mencukupi! Hanya tersedia ${sisaAsli} porsi.`);
+                            e.target.value = cart[id] ? cart[id].jumlah : 0; // Kembalikan ke nilai lama
+                            return;
+                        }
+
+                        if (newJumlah === 0) {
+                            delete cart[id];
+                        } else {
+                            cart[id].jumlah = newJumlah;
+                        }
                     }
                     renderCart();
                 }
@@ -269,19 +341,15 @@
                 }
             });
 
-            // === BAGIAN FILTER KATEGORI ===
-            // ... (Fungsi filter Anda tetap sama, tidak perlu diubah) ...
+            // Filter Kategori (tidak berubah)
             const filterButtons = document.querySelectorAll('.btn-filter');
             const menuCards = document.querySelectorAll('.menu-card');
-
             filterButtons.forEach(button => {
                 button.addEventListener('click', function (e) {
                     e.preventDefault();
                     filterButtons.forEach(btn => btn.classList.remove('active'));
                     this.classList.add('active');
-
                     const filter = this.getAttribute('data-filter');
-
                     menuCards.forEach(card => {
                         if (filter === 'all' || card.getAttribute('data-kategori-id') === filter) {
                             card.style.display = 'block';
@@ -292,15 +360,11 @@
                 });
             });
 
-
-            // === SCRIPT STICKY CARD YANG DIPERBARUI ===
+            // Sticky Card (tidak berubah)
             const orderCard = document.getElementById('kartu-pesanan');
-
             if (orderCard) {
                 const parentColumn = orderCard.parentElement;
                 let initialTop = orderCard.offsetTop;
-
-                // Atur lebar kartu saat sticky
                 const setStickyWidth = () => {
                     if (orderCard.classList.contains('is-sticky')) {
                         orderCard.style.width = parentColumn.offsetWidth + 'px';
@@ -308,9 +372,7 @@
                         orderCard.style.width = 'auto';
                     }
                 };
-
                 window.addEventListener('scroll', function () {
-                    // Cek posisi scroll halaman
                     if (window.pageYOffset > initialTop) {
                         if (!orderCard.classList.contains('is-sticky')) {
                             orderCard.classList.add('is-sticky');
@@ -323,8 +385,6 @@
                         }
                     }
                 });
-
-                // Atur ulang lebar jika ukuran window berubah (misal: rotasi layar)
                 window.addEventListener('resize', setStickyWidth);
             }
 
