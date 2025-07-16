@@ -73,7 +73,7 @@
 
                                                             @if ($diffInDays < 0)
                                                                 <span class="badge badge-dark">Kadaluarsa</span>
-                                                            @elseif ($diffInDays <= 30)
+                                                            @elseif ($diffInDays <= 15)
                                                                 <span class="badge badge-warning text-dark">Hampir Kadaluarsa</span>
                                                             @else
                                                                 <span class="badge badge-success">Aman

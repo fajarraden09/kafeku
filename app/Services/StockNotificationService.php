@@ -88,8 +88,8 @@ class StockNotificationService
                     // Pertimbangkan untuk menambahkan flag di tabel batch_bahan_baku (misal: notifikasi_kadaluarsa_terkirim)
                     // agar notifikasi ini hanya terkirim sekali per batch yang kadaluarsa.
                 }
-                // Notifikasi Hampir Kadaluarsa (misal: dalam 30 hari ke depan)
-                elseif ($selisihHari >= 0 && $selisihHari <= 30 && $batch->sisa_stok > 0) {
+                // Notifikasi Hampir Kadaluarsa (misal: dalam 15 hari ke depan)
+                elseif ($selisihHari >= 0 && $selisihHari <= 15 && $batch->sisa_stok > 0) {
                     Log::info("Kondisi: Batch Hampir Kadaluarsa.");
                     self::sendNotification(
                         $bahanBaku,

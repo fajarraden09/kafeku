@@ -96,7 +96,7 @@ class HomeController extends Controller
         $lowStockItems = BahanBaku::whereRaw('stok <= batas_minimum AND stok > 0')->get();
         // ===== KODE UNTUK MENGHITUNG ITEM KADALUARSA =====
         $today = Carbon::today();
-        $expiryLimitDate = Carbon::today()->addDays(30); // Batas "hampir kadaluarsa" adalah 30 hari dari sekarang
+        $expiryLimitDate = Carbon::today()->addDays(15); // Batas "hampir kadaluarsa" adalah 30 hari dari sekarang
 
         // Hitung jumlah item unik yang memiliki batch kadaluarsa (dengan sisa stok > 0)
         $expiredItemsCount = BatchBahanBaku::where('sisa_stok', '>', 0)
