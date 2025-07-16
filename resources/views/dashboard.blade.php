@@ -50,6 +50,8 @@
                 </div>
                 <div class="row mb-3">
                     <div class="col-12">
+                        <a href="{{ route('owner.dashboard', ['periode' => 'daily']) }}"
+                            class="btn {{ $periode == 'daily' ? 'btn-primary' : 'btn-outline-primary' }}">Harian</a>
                         <a href="{{ route('owner.dashboard', ['periode' => 'weekly']) }}"
                             class="btn {{ $periode == 'weekly' ? 'btn-primary' : 'btn-outline-primary' }}">1 Minggu
                             Terakhir</a>
