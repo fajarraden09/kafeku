@@ -2,10 +2,7 @@
 
 @section('content')
     <div class="content-wrapper">
-        <section class="content-header">
-        </section>
-
-        <section class="content">
+        <section class="content mt-2">
             <div class="container-fluid">
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
