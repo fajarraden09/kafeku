@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="content-wrapper">
-        <section class="content mt-2">
+        <section class="content mt-3">
             <div class="container-fluid">
                 @if (session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
@@ -69,13 +69,13 @@
                             <div class="card-body">
                                 <form action="{{ route('owner.kasir.store') }}" method="POST" id="order-form">
                                     @csrf
-                                    <div class="form-group">
+                                    <div class="form-group mb-2">
                                         <label for="nama_pelanggan">Nama Pelanggan <span
                                                 class="text-danger">*</span></label>
                                         <input type="text" name="nama_pelanggan" id="nama_pelanggan" class="form-control"
                                             placeholder="Masukkan nama pelanggan..." required>
                                     </div>
-                                    <hr>
+                                    <hr class="my-1">
                                     <div class="cart-scroll-container">
                                         <table class="table">
                                             <thead>
