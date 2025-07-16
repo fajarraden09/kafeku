@@ -13,9 +13,9 @@
 
         <section class="content">
             <div class="container-fluid">
-
                 <div class="row">
-                    <div class="col-lg-6 col-6">
+                    {{-- Kotak Bahan Hampir Habis --}}
+                    <div class="col-lg-4 col-6">
                         <div class="small-box bg-warning">
                             <div class="inner">
                                 <h3>{{ $lowStockItems->count() }}</h3>
@@ -28,13 +28,29 @@
                                     class="fas fa-arrow-circle-right"></i></a>
                         </div>
                     </div>
-                    <div class="col-lg-6 col-6">
+
+                    {{-- KOTAK BARU: Bahan Kadaluarsa --}}
+                    <div class="col-lg-4 col-6">
+                        <div class="small-box bg-danger">
+                            <div class="inner">
+                                <h3>{{ $expiredItemsCount + $expiringSoonItemsCount }}</h3>
+                                <p>Bahan Kadaluarsa / Hampir</p>
+                            </div>
+                            <div class="icon">
+                                <i class="ion ion-ios-timer-outline"></i>
+                            </div>
+                            <a href="{{ route('owner.laporan.stok') }}" class="small-box-footer">Lihat Detail <i
+                                    class="fas fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+
+                    {{-- Kotak Menu Paling Laris --}}
+                    <div class="col-lg-4 col-6">
                         <div class="small-box bg-success">
                             <div class="inner">
-                                {{-- Cek jika ada menu yang terjual --}}
                                 @if ($bestSellingMenu)
-                                    <h3>{{ $bestSellingMenu->menu->nama_menu }}</h3>
-                                    <p>Menu Paling Laris (Terjual {{ $bestSellingMenu->total_terjual }})</p>
+                                    <h3>{{ \Illuminate\Support\Str::limit($bestSellingMenu->menu->nama_menu, 15, '..') }}</h3>
+                                    <p>Menu Laris (Terjual {{ $bestSellingMenu->total_terjual }})</p>
                                 @else
                                     <h3>-</h3>
                                     <p>Menu Paling Laris</p>

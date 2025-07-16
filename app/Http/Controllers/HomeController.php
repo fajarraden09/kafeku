@@ -94,6 +94,21 @@ class HomeController extends Controller
 
         // Ambil data untuk Info Box (tidak berubah)
         $lowStockItems = BahanBaku::whereRaw('stok <= batas_minimum AND stok > 0')->get();
+        // ===== KODE UNTUK MENGHITUNG ITEM KADALUARSA =====
+        $today = Carbon::today();
+        $expiryLimitDate = Carbon::today()->addDays(30); // Batas "hampir kadaluarsa" adalah 30 hari dari sekarang
+
+        // Hitung jumlah item unik yang memiliki batch kadaluarsa (dengan sisa stok > 0)
+        $expiredItemsCount = BatchBahanBaku::where('sisa_stok', '>', 0)
+            ->whereDate('tanggal_kadaluarsa', '<', $today)
+            ->distinct('bahan_baku_id')
+            ->count('bahan_baku_id');
+
+        // Hitung jumlah item unik yang memiliki batch hampir kadaluarsa
+        $expiringSoonItemsCount = BatchBahanBaku::where('sisa_stok', '>', 0)
+            ->whereBetween('tanggal_kadaluarsa', [$today, $expiryLimitDate])
+            ->distinct('bahan_baku_id')
+            ->count('bahan_baku_id');
         // Untuk best selling, kita tetap ambil berdasarkan periode yang dipilih
         $startRange = ($periode == 'daily') ? Carbon::today()->startOfDay() : $startDate;
         $endRange = ($periode == 'daily') ? Carbon::today()->endOfDay() : $endDate;
@@ -105,6 +120,8 @@ class HomeController extends Controller
 
         return view('dashboard', [
             'lowStockItems' => $lowStockItems,
+            'expiredItemsCount' => $expiredItemsCount,
+            'expiringSoonItemsCount' => $expiringSoonItemsCount,
             'bestSellingMenu' => $bestSellingMenu,
             'labels' => $labels,
             'dataPenjualan' => $dataPenjualan,
