@@ -144,13 +144,40 @@
 @endsection
 
 <style>
+    /* Menerapkan Flexbox saat kartu menjadi sticky */
+    #kartu-pesanan.is-sticky {
+        position: fixed;
+        top: 20px;
+        /* Batasi tinggi kartu agar tidak melebihi tinggi layar */
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Membuat card-body mengisi sisa tinggi kartu */
+    #kartu-pesanan.is-sticky .card-body {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        overflow: hidden;
+        /* Penting untuk flexbox */
+    }
+
+    /* Membuat form mengisi sisa tinggi card-body */
+    #kartu-pesanan.is-sticky #order-form {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        overflow: hidden;
+        /* Penting untuk flexbox */
+    }
+
+    /* Membuat area daftar item menjadi scrollable */
     .cart-scroll-container {
-        max-height: 280px;
-        /* Batas tinggi maksimal area scroll, bisa disesuaikan */
+        flex-grow: 1;
+        /* Membuat area ini memanjang mengisi ruang kosong */
         overflow-y: auto;
-        /* Tampilkan scrollbar vertikal jika konten melebihi max-height */
-        overflow-x: hidden;
-        /* Sembunyikan scrollbar horizontal */
+        /* Memberikan scrollbar jika kontennya lebih panjang */
     }
 </style>
 
@@ -159,6 +186,7 @@
         document.addEventListener('DOMContentLoaded', function () {
 
             // === BAGIAN KERANJANG BELANJA (CART) ===
+            // ... (Fungsi cart Anda tetap sama, tidak perlu diubah) ...
             let cart = {};
 
             function renderCart() {
@@ -232,6 +260,7 @@
             });
 
             // === BAGIAN FILTER KATEGORI ===
+            // ... (Fungsi filter Anda tetap sama, tidak perlu diubah) ...
             const filterButtons = document.querySelectorAll('.btn-filter');
             const menuCards = document.querySelectorAll('.menu-card');
 
@@ -253,26 +282,40 @@
                 });
             });
 
-            // === SCRIPT STICKY CARD YANG DISEMPURNAKAN ===
+
+            // === SCRIPT STICKY CARD YANG DIPERBARUI ===
             const orderCard = document.getElementById('kartu-pesanan');
 
             if (orderCard) {
                 const parentColumn = orderCard.parentElement;
-                const initialTop = orderCard.offsetTop;
+                let initialTop = orderCard.offsetTop;
+
+                // Atur lebar kartu saat sticky
+                const setStickyWidth = () => {
+                    if (orderCard.classList.contains('is-sticky')) {
+                        orderCard.style.width = parentColumn.offsetWidth + 'px';
+                    } else {
+                        orderCard.style.width = 'auto';
+                    }
+                };
 
                 window.addEventListener('scroll', function () {
                     // Cek posisi scroll halaman
                     if (window.pageYOffset > initialTop) {
-                        // Terapkan style sticky
-                        orderCard.style.position = 'fixed';
-                        orderCard.style.top = '20px';
-                        orderCard.style.width = parentColumn.offsetWidth + 'px'; // Atur lebar kartu agar sama dengan lebar kolom induknya
+                        if (!orderCard.classList.contains('is-sticky')) {
+                            orderCard.classList.add('is-sticky');
+                            setStickyWidth();
+                        }
                     } else {
-                        // Kembalikan ke style semula
-                        orderCard.style.position = 'static';
-                        orderCard.style.width = 'auto';
+                        if (orderCard.classList.contains('is-sticky')) {
+                            orderCard.classList.remove('is-sticky');
+                            setStickyWidth();
+                        }
                     }
                 });
+
+                // Atur ulang lebar jika ukuran window berubah (misal: rotasi layar)
+                window.addEventListener('resize', setStickyWidth);
             }
 
         });
