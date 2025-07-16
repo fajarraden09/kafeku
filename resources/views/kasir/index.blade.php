@@ -80,10 +80,10 @@
                                         <table class="table">
                                             <thead>
                                                 <tr>
-                                                    <th>Menu</th>
-                                                    <th>Jumlah</th>
+                                                    <th style="width: 100%;">Menu</th>
+                                                    <th style="width: 80px; text-align: center;">Jumlah</th>
                                                     <th>Subtotal</th>
-                                                    <th>Aksi</th>
+                                                    <th style="width: 60px; text-align: center;">Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="cart-items">
