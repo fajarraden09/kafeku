@@ -58,24 +58,30 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    {{-- Logika Status Kadaluarsa --}}
-                                                    @if ($d->tanggal_kadaluarsa_terdekat)
-                                                        @php
-                                                            $today = \Carbon\Carbon::now();
-                                                            $expiryDate = $d->tanggal_kadaluarsa_terdekat;
-                                                            // Hitung selisih hari. Parameter 'false' agar menghasilkan nilai negatif jika sudah kadaluarsa
-                                                            $diffInDays = $today->diffInDays($expiryDate, false);
-                                                        @endphp
+                                                    {{-- 1. Cek dulu apakah stok totalnya masih ada --}}
+                                                    @if ($d->stok <= 0)
+                                                        <span class="badge badge-dark">Stok Habis</span>
 
-                                                        @if ($diffInDays < 0)
-                                                            <span class="badge badge-dark">Kadaluarsa</span>
-                                                        @elseif ($diffInDays <= 30) {{-- Misalnya, 30 hari sebagai ambang batas "hampir kadaluarsa" --}}
-                                                            <span class="badge badge-warning">Hampir Kadaluarsa</span>
-                                                        @else
-                                                            <span class="badge badge-info">Aman ({{ $expiryDate->format('d M Y') }})</span>
-                                                        @endif
+                                                        {{-- 2. Jika stok masih ada, baru jalankan logika kadaluarsa --}}
                                                     @else
-                                                        <span class="badge badge-secondary">Tidak Ada Batch</span>
+                                                        @if ($d->tanggal_kadaluarsa_terdekat)
+                                                            @php
+                                                                $today = \Carbon\Carbon::now();
+                                                                $expiryDate = $d->tanggal_kadaluarsa_terdekat;
+                                                                $diffInDays = $today->diffInDays($expiryDate, false);
+                                                            @endphp
+
+                                                            @if ($diffInDays < 0)
+                                                                <span class="badge badge-dark">Kadaluarsa</span>
+                                                            @elseif ($diffInDays <= 30)
+                                                                <span class="badge badge-warning text-dark">Hampir Kadaluarsa</span>
+                                                            @else
+                                                                <span class="badge badge-success">Aman
+                                                                    ({{ $expiryDate->format('d M Y') }})</span>
+                                                            @endif
+                                                        @else
+                                                            <span class="badge badge-secondary">Tidak Ada Batch</span>
+                                                        @endif
                                                     @endif
                                                 </td>
                                                 <td class="text-center">
