@@ -82,7 +82,7 @@
                                                 <tr>
                                                     <th style="width: 100%;">Menu</th>
                                                     <th style="width: 80px; text-align: center;">Jumlah</th>
-                                                    <th style="width: 100%;">Subtotal</th>
+                                                    <th style="width: 150px;">Subtotal</th>
                                                     <th style="width: 60px; text-align: center;">Aksi</th>
                                                 </tr>
                                             </thead>
