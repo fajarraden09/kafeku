@@ -92,18 +92,20 @@
                                             placeholder="Masukkan nama pelanggan..." required>
                                     </div>
                                     <hr>
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Menu</th>
-                                                <th>Jumlah</th>
-                                                <th>Subtotal</th>
-                                                <th>Aksi</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="cart-items">
-                                        </tbody>
-                                    </table>
+                                    <div class="cart-scroll-container">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Menu</th>
+                                                    <th>Jumlah</th>
+                                                    <th>Subtotal</th>
+                                                    <th>Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="cart-items">
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     <hr>
                                     <h4>Total: <span id="total-price">Rp 0</span></h4>
 
@@ -140,6 +142,17 @@
         </section>
     </div>
 @endsection
+
+<style>
+    .cart-scroll-container {
+        max-height: 280px;
+        /* Batas tinggi maksimal area scroll, bisa disesuaikan */
+        overflow-y: auto;
+        /* Tampilkan scrollbar vertikal jika konten melebihi max-height */
+        overflow-x: hidden;
+        /* Sembunyikan scrollbar horizontal */
+    }
+</style>
 
 @push('scripts')
     <script>
