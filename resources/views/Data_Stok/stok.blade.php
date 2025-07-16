@@ -142,11 +142,18 @@
                     // Ambil teks dari kolom "Nama Bahan" (indeks 1)
                     var namaBahan = $(this).children('td:eq(1)').text().toLowerCase();
 
+                    // Ambil teks dari kolom "Status Stok" (indeks 4)
+                    var statusStok = $(this).children('td:eq(4)').text().toLowerCase();
+
                     // Ambil teks dari kolom "Status Kadaluarsa" (indeks 5)
                     var statusKadaluarsa = $(this).children('td:eq(5)').text().toLowerCase();
 
-                    // Tampilkan baris jika teks ditemukan di SALAH SATU kolom
-                    $(this).toggle(namaBahan.indexOf(value) > -1 || statusKadaluarsa.indexOf(value) > -1)
+                    // Tampilkan baris jika teks ditemukan di SALAH SATU dari tiga kolom
+                    $(this).toggle(
+                        namaBahan.indexOf(value) > -1 ||
+                        statusStok.indexOf(value) > -1 ||
+                        statusKadaluarsa.indexOf(value) > -1
+                    )
                 });
             });
         });

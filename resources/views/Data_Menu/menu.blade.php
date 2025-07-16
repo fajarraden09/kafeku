@@ -141,12 +141,23 @@
             // Event listener saat pengguna mengetik di kotak pencarian
             $("#menuSearch").on("keyup", function () {
                 var value = $(this).val().toLowerCase();
-                // Loop melalui setiap baris di tabel body
+
                 $("#menuTableBody tr").filter(function () {
-                    // Toggle (sembunyikan/tampilkan) baris berdasarkan cocok atau tidaknya teks
-                    // .toggle(true) akan menampilkan, .toggle(false) akan menyembunyikan
-                    // Kita menargetkan kolom kedua (index 1) yaitu "Nama Menu"
-                    $(this).toggle($(this).children('td:eq(2)').text().toLowerCase().indexOf(value) > -1)
+                    // Ambil teks dari kolom "Nama Menu" (indeks 2)
+                    var namaMenu = $(this).children('td:eq(2)').text().toLowerCase();
+
+                    // Ambil teks dari kolom "Kategori" (indeks 3)
+                    var kategori = $(this).children('td:eq(3)').text().toLowerCase();
+
+                    // Ambil teks dari kolom "Ketersediaan" (indeks 5)
+                    var ketersediaan = $(this).children('td:eq(5)').text().toLowerCase();
+
+                    // Tampilkan baris jika teks ditemukan di SALAH SATU dari tiga kolom
+                    $(this).toggle(
+                        namaMenu.indexOf(value) > -1 ||
+                        kategori.indexOf(value) > -1 ||
+                        ketersediaan.indexOf(value) > -1
+                    )
                 });
             });
         });
