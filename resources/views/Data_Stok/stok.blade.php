@@ -137,10 +137,16 @@
             // Event listener untuk pencarian stok
             $("#stokSearch").on("keyup", function () {
                 var value = $(this).val().toLowerCase();
-                // Loop melalui setiap baris di tabel body
+
                 $("#stokTableBody tr").filter(function () {
-                    // Menargetkan kolom kedua (index 1) yaitu "Nama Bahan"
-                    $(this).toggle($(this).children('td:eq(1)').text().toLowerCase().indexOf(value) > -1)
+                    // Ambil teks dari kolom "Nama Bahan" (indeks 1)
+                    var namaBahan = $(this).children('td:eq(1)').text().toLowerCase();
+
+                    // Ambil teks dari kolom "Status Kadaluarsa" (indeks 5)
+                    var statusKadaluarsa = $(this).children('td:eq(5)').text().toLowerCase();
+
+                    // Tampilkan baris jika teks ditemukan di SALAH SATU kolom
+                    $(this).toggle(namaBahan.indexOf(value) > -1 || statusKadaluarsa.indexOf(value) > -1)
                 });
             });
         });
