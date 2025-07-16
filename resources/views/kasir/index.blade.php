@@ -166,6 +166,11 @@
         position: fixed;
         top: 20px;
     }
+
+    .kolom-subtotal {
+        white-space: nowrap;
+        /* Mencegah teks turun ke baris baru */
+    }
 </style>
 
 @push('scripts')
