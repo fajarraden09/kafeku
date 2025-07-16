@@ -82,7 +82,7 @@
                                                 <tr>
                                                     <th style="width: 100%;">Menu</th>
                                                     <th style="width: 80px; text-align: center;">Jumlah</th>
-                                                    <th style="width: 500px; text-align: center;">Subtotal</th>
+                                                    <th class="kolom-subtotal">Subtotal</th>
                                                     <th style="width: 60px; text-align: center;">Aksi</th>
                                                 </tr>
                                             </thead>
@@ -191,7 +191,7 @@
                     const subtotal = item.price * item.jumlah;
                     totalPrice += subtotal;
 
-                    const row = `<tr><td>${item.name}</td><td><input type="number" value="${item.jumlah}" min="1" class="form-control form-control-sm cart-item-qty" data-id="${id}"></td><td>Rp ${subtotal.toLocaleString('id-ID')}</td><td><button type="button" class="btn btn-danger btn-sm btn-remove-from-cart" data-id="${id}">&times;</button></td></tr>`;
+                    const row = `<tr><td>${item.name}</td><td><input type="number" value="${item.jumlah}" min="1" class="form-control form-control-sm cart-item-qty" data-id="${id}"></td><td class="kolom-subtotal">Rp ${subtotal.toLocaleString('id-ID')}</td><td><button type="button" class="btn btn-danger btn-sm btn-remove-from-cart" data-id="${id}">&times;</button></td></tr>`;
                     cartItemsContainer.insertAdjacentHTML('beforeend', row);
 
                     const hiddenId = `<input type="hidden" name="items[${index}][menu_id]" value="${id}">`;
