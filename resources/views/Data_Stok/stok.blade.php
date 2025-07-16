@@ -50,7 +50,7 @@
                                                 <td>
                                                     {{-- Logika Status Ketersediaan Stok --}}
                                                     @if ($d->stok == 0)
-                                                        <span class="badge badge-dark">Habis</span>
+                                                        <span class="badge badge-dark">Sudah Habis</span>
                                                     @elseif ($d->stok <= $d->batas_minimum)
                                                         <span class="badge badge-danger">Hampir Habis</span>
                                                     @else
