@@ -4,8 +4,6 @@
     <div class="content-wrapper">
         <section class="content-header">
             <div class="container-fluid">
-                <div class="row mb-2">
-                </div>
             </div>
         </section>
 
@@ -141,40 +139,37 @@
 @endsection
 
 <style>
-    /* Menerapkan Flexbox saat kartu menjadi sticky */
+    /* 1. TATA LETAK INTERNAL KARTU (BERLAKU SEJAK AWAL) */
+
+    /* Atur kartu pesanan agar menggunakan flexbox dan tidak melebihi tinggi layar */
+    #kartu-pesanan {
+        display: flex;
+        flex-direction: column;
+        max-height: 90vh;
+        /* Maksimal 90% dari tinggi layar */
+    }
+
+    /* Atur agar .card-body dan #order-form mengisi sisa ruang di dalam kartu */
+    #kartu-pesanan .card-body,
+    #kartu-pesanan #order-form {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        overflow: hidden;
+    }
+
+    /* Atur agar area daftar item bisa di-scroll jika isinya panjang */
+    .cart-scroll-container {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+
+    /* 2. STYLE UNTUK EFEK STICKY (HANYA AKTIF SAAT SCROLL) */
+
+    /* Kelas .is-sticky ini akan ditambahkan oleh JavaScript saat scroll */
     #kartu-pesanan.is-sticky {
         position: fixed;
         top: 20px;
-        /* Batasi tinggi kartu agar tidak melebihi tinggi layar */
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-    }
-
-    /* Membuat card-body mengisi sisa tinggi kartu */
-    #kartu-pesanan.is-sticky .card-body {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        overflow: hidden;
-        /* Penting untuk flexbox */
-    }
-
-    /* Membuat form mengisi sisa tinggi card-body */
-    #kartu-pesanan.is-sticky #order-form {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-        overflow: hidden;
-        /* Penting untuk flexbox */
-    }
-
-    /* Membuat area daftar item menjadi scrollable */
-    .cart-scroll-container {
-        flex-grow: 1;
-        /* Membuat area ini memanjang mengisi ruang kosong */
-        overflow-y: auto;
-        /* Memberikan scrollbar jika kontennya lebih panjang */
     }
 </style>
 
