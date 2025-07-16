@@ -95,7 +95,7 @@
 
                                     <div class="mt-3">
                                         <strong>Metode Pembayaran:</strong>
-                                        <div class="form-check form-check-inline">
+                                        <div class="form-check">
                                             <input class="form-check-input" type="radio" name="metode_pembayaran"
                                                 id="metodeTunai" value="Tunai" checked>
                                             <label class="form-check-label" for="metodeTunai">Tunai</label>
