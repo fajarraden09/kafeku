@@ -210,11 +210,17 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @empty
-                                            <tr>
-                                                <td colspan="{{ !isset($tanggal_pencarian) ? '7' : '6' }}" class="text-center">
-                                                    Belum ada data transaksi.</td>
-                                            </tr>
+                                            @empty
+                                                <tr>
+                                                    @if (isset($tanggal_pencarian))
+                                                        {{-- Jika sedang mencari tanggal, colspan adalah 6 --}}
+                                                        <td colspan="6" class="text-center">Tidak ada data transaksi pada tanggal ini.</td>
+                                                    @else
+                                                        {{-- Jika tidak (Tampilkan Semua / Belum Dibayar), colspan adalah 7 --}}
+                                                        <td colspan="7" class="text-center">Belum ada data transaksi.</td>
+                                                    @endif
+                                                </tr>
+                                            @endempty
                                         @endforelse
                                     </tbody>
                                     {{-- KODE UNTUK TOTAL PENDAPATAN --}}
