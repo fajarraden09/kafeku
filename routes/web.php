@@ -91,6 +91,7 @@ Route::group(['prefix' => 'owner', 'middleware' => ['auth'], 'as' => 'owner.'], 
     Route::get('/laporan/harian', [LaporanController::class, 'laporanHarian'])->name('laporan.harian');
     Route::delete('/laporan/cancel/{id}', [LaporanController::class, 'cancelAndRestock'])->name('laporan.cancel');
     Route::delete('/laporan/{id}/force-delete', [LaporanController::class, 'forceDelete'])->name('laporan.forcedelete');
+    Route::get('/laporan/cetak-harian', [LaporanController::class, 'cetakLaporanHarian'])->name('owner.laporan.cetak.harian');
     Route::get('/laporan/stok', [LaporanController::class, 'laporanStok'])->name('laporan.stok');
 
     // Route untuk mengubah status transaksi menjadi lunas

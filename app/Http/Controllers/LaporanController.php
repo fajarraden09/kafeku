@@ -16,27 +16,26 @@ class LaporanController extends Controller
     public function index(Request $request)
     {
         $query = Transaksi::with('user')->latest();
-        $tanggal_pencarian = null; // Inisialisasi variabel tanggal
+        $tanggal_pencarian = null;
+        $totalPendapatan = null; // Inisialisasi variabel total
 
-        // Kondisi 1: Jika ada input tanggal dari form pencarian
+        // Kondisi jika ada input tanggal dari form pencarian atau dari route laporan harian
         if ($request->has('tanggal') && $request->tanggal) {
             $tanggal_pencarian = Carbon::parse($request->tanggal)->format('Y-m-d');
             $query->whereDate('created_at', $tanggal_pencarian);
+
+            // Langsung hitung total pendapatan untuk data yang akan ditampilkan
+            // Kita kloning query agar tidak mengganggu pengambilan data utama
+            $totalPendapatan = (clone $query)->sum('total_harga');
         }
-        // Kondisi 2: Jika ada filter status "Belum Dibayar"
+        // Kondisi filter status "Belum Dibayar"
         elseif ($request->has('status') && $request->status == 'Belum Dibayar') {
             $query->where('status_pembayaran', 'Belum Dibayar');
         }
-        // Jika tidak ada filter, query akan mengambil semua data (default)
 
         $transaksi = $query->get();
 
-        // Kirim variabel $tanggal_pencarian ke view untuk ditampilkan di input
-        return view('laporan.index', [
-            'transaksi' => $transaksi,
-            'tanggal_pencarian' => $tanggal_pencarian,
-            'isLaporanHarian' => false // Penanda bahwa ini BUKAN laporan harian
-        ]);
+        return view('laporan.index', compact('transaksi', 'tanggal_pencarian', 'totalPendapatan'));
     }
 
     /**
@@ -54,18 +53,8 @@ class LaporanController extends Controller
      */
     public function laporanHarian()
     {
-        // Mengambil semua transaksi hanya untuk hari ini
-        $transaksiHarian = Transaksi::whereDate('created_at', Carbon::today())->latest()->get();
-
-        // Menghitung total pendapatan hanya untuk hari ini
-        $totalPendapatanHarian = $transaksiHarian->sum('total_harga');
-
-        // Mengirim data ke view yang sama (laporan.index)
-        return view('laporan.index', [
-            'transaksi' => $transaksiHarian,
-            'totalPendapatanHarian' => $totalPendapatanHarian,
-            'isLaporanHarian' => true // Flag untuk menandai ini adalah laporan harian
-        ]);
+        // Cukup arahkan ke route index dengan parameter tanggal hari ini
+        return redirect()->route('owner.laporan.index', ['tanggal' => Carbon::today()->format('Y-m-d')]);
     }
 
     /**
@@ -126,4 +115,25 @@ class LaporanController extends Controller
             return redirect()->route('owner.laporan.index')->with('error', 'Terjadi kesalahan saat membatalkan transaksi. Silakan coba lagi.');
         }
     }
+    /**
+     * Menyiapkan dan menampilkan halaman untuk mencetak laporan harian.
+     */
+    public function cetakLaporanHarian(Request $request)
+    {
+        // Validasi bahwa tanggal ada di request
+        $request->validate(['tanggal' => 'required|date']);
+
+        $tanggal = Carbon::parse($request->tanggal);
+        
+        // Ambil semua transaksi pada tanggal tersebut
+        $transaksi = Transaksi::with('user')
+            ->whereDate('created_at', $tanggal)
+            ->latest()->get();
+
+        // Hitung total pendapatan
+        $totalPendapatan = $transaksi->sum('total_harga');
+
+        // Kirim data ke view khusus untuk cetak
+        return view('laporan.cetak_harian', compact('transaksi', 'totalPendapatan', 'tanggal'));
+    }   
 }

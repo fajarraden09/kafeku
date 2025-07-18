@@ -14,15 +14,20 @@
                 <div class="row">
                     <div class="col-12">
                         {{-- ... (Tombol filter dan card header tidak berubah) ... --}}
-                        <div class="mb-3">
-                            <a href="{{ route('owner.laporan.index') }}" class="btn btn-secondary">Tampilkan Semua</a>
+                        <div class="mb-3 d-flex align-items-center">
+                            <a href="{{ route('owner.laporan.index') }}" class="btn btn-secondary mr-2">Tampilkan Semua</a>
                             <a href="{{ route('owner.laporan.index', ['status' => 'Belum Dibayar']) }}"
-                                class="btn btn-warning">
-                                Tampilkan Hanya yang Belum Dibayar
-                            </a>
-                            <a href="{{ route('owner.laporan.harian') }}" class="btn btn-info">
-                                <i class="fas fa-calendar-day"></i> Laporan Hari Ini
-                            </a>
+                                class="btn btn-warning mr-2">Tampilkan Hanya yang Belum Dibayar</a>
+                            <a href="{{ route('owner.laporan.harian') }}" class="btn btn-info"><i
+                                    class="fas fa-calendar-day"></i> Laporan Hari Ini</a>
+
+                            {{-- TOMBOL CETAK KONDISIONAL --}}
+                            @if (isset($tanggal_pencarian))
+                                <a href="{{ route('owner.laporan.cetak.harian', ['tanggal' => $tanggal_pencarian]) }}"
+                                    target="_blank" class="btn btn-success ml-auto">
+                                    <i class="fas fa-print"></i> Cetak Laporan Tanggal Ini
+                                </a>
+                            @endif
                         </div>
                         <div class="card">
                             <div class="card-header">
@@ -206,11 +211,12 @@
                                         @endforelse
                                     </tbody>
                                     {{-- KODE UNTUK TOTAL PENDAPATAN --}}
-                                    @if (isset($isLaporanHarian) && $isLaporanHarian)
+                                    @if (isset($totalPendapatan))
                                         <tfoot>
                                             <tr>
-                                                <th colspan="4" class="text-right">Total Pendapatan Hari Ini:</th>
-                                                <th colspan="3">Rp {{ number_format($totalPendapatanHarian, 0, ',', '.') }}</th>
+                                                {{-- Ubah teks agar lebih dinamis --}}
+                                                <th colspan="4" class="text-right">Total Pendapatan pada Tanggal Ini:</th>
+                                                <th colspan="3">Rp {{ number_format($totalPendapatan, 0, ',', '.') }}</th>
                                             </tr>
                                         </tfoot>
                                     @endif
@@ -339,50 +345,50 @@
 
                         // HTML Nota (tidak ada perubahan di sini)
                         var receiptHtml = `
-                                                                <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 10pt; color: #000;">
-                                                                    <div style="text-align: center;">
-                                                                        <h3 style="margin: 0; font-size: 12pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
-                                                                        <p style="margin: 0;">Jl. Tentara Pelajar, Wates, Kulon Progo</p>
-                                                                        <p style="margin: 0;">Telp: 081212719273</p>
-                                                                    </div>
-                                                                    <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                                                    <table style="width: 100%; font-size: 10pt;">
-                                                                        <tr><td style="width:30%;">No Struk</td><td>: ${response.kode_transaksi}</td></tr>
-                                                                        <tr><td>Tanggal</td><td>: ${formattedDate}</td></tr>
-                                                                        <tr><td>Kasir</td><td>: ${response.user ? response.user.name : 'N/A'}</td></tr>
-                                                                        <tr><td>Pelanggan</td><td>: ${response.nama_pelanggan ? response.nama_pelanggan : '-'}</td></tr>
-                                                                    </table>
-                                                                    <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                                                    <table style="width: 100%; font-size: 10pt;">`;
+                                                                        <div style="font-family: 'sans-serif'; width: 100%; padding: 5px; font-size: 10pt; color: #000;">
+                                                                            <div style="text-align: center;">
+                                                                                <h3 style="margin: 0; font-size: 12pt; margin-top: 20px;">SUGRIWA-SUBALI</h3>
+                                                                                <p style="margin: 0;">Jl. Tentara Pelajar, Wates, Kulon Progo</p>
+                                                                                <p style="margin: 0;">Telp: 081212719273</p>
+                                                                            </div>
+                                                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                                                            <table style="width: 100%; font-size: 10pt;">
+                                                                                <tr><td style="width:30%;">No Struk</td><td>: ${response.kode_transaksi}</td></tr>
+                                                                                <tr><td>Tanggal</td><td>: ${formattedDate}</td></tr>
+                                                                                <tr><td>Kasir</td><td>: ${response.user ? response.user.name : 'N/A'}</td></tr>
+                                                                                <tr><td>Pelanggan</td><td>: ${response.nama_pelanggan ? response.nama_pelanggan : '-'}</td></tr>
+                                                                            </table>
+                                                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                                                            <table style="width: 100%; font-size: 10pt;">`;
 
                         response.detail_transaksi.forEach(function (item) {
                             var subtotal = item.jumlah * item.harga_saat_transaksi;
                             receiptHtml += `
-                                                                    <tr><td colspan="3">${item.menu ? item.menu.nama_menu : 'Menu Dihapus'}</td></tr>
-                                                                    <tr>
-                                                                        <td style="text-align: right; padding-right: 10px;">${item.jumlah}x @${Number(item.harga_saat_transaksi).toLocaleString('id-ID')}</td>
-                                                                        <td colspan="2" style="text-align: right;">${Number(subtotal).toLocaleString('id-ID')}</td>
-                                                                    </tr>`;
+                                                                            <tr><td colspan="3">${item.menu ? item.menu.nama_menu : 'Menu Dihapus'}</td></tr>
+                                                                            <tr>
+                                                                                <td style="text-align: right; padding-right: 10px;">${item.jumlah}x @${Number(item.harga_saat_transaksi).toLocaleString('id-ID')}</td>
+                                                                                <td colspan="2" style="text-align: right;">${Number(subtotal).toLocaleString('id-ID')}</td>
+                                                                            </tr>`;
                         });
 
                         receiptHtml += `
-                                                                    </table>
-                                                                    <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                                                    <table style="width: 100%; font-size: 10pt; font-weight: bold;">
-                                                                        <tr><td>TOTAL</td><td style="text-align: right;">Rp ${Number(response.total_harga).toLocaleString('id-ID')}</td></tr>
-                                                                        <tr><td>PEMBAYARAN</td><td style="text-align: right;">${response.metode_pembayaran}</td></tr>
-                                                                    </table>
-                                                                    <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                                                                    <div style="text-align: center; margin-top: 10px">
-                                                                        <p style="margin: 0";>Wifi : Sugriwa Subali</p>
-                                                                        <p style="margin: 0";>Sandi: malamminggu</p>
-                                                                        <p style="margin-top: 10px";>Terima Kasih Atas Kunjungan Anda</p>
-                                                                    </div>
-                                                                    <div style="text-align: center; ">
+                                                                            </table>
+                                                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                                                            <table style="width: 100%; font-size: 10pt; font-weight: bold;">
+                                                                                <tr><td>TOTAL</td><td style="text-align: right;">Rp ${Number(response.total_harga).toLocaleString('id-ID')}</td></tr>
+                                                                                <tr><td>PEMBAYARAN</td><td style="text-align: right;">${response.metode_pembayaran}</td></tr>
+                                                                            </table>
+                                                                            <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                                                                            <div style="text-align: center; margin-top: 10px">
+                                                                                <p style="margin: 0";>Wifi : Sugriwa Subali</p>
+                                                                                <p style="margin: 0";>Sandi: malamminggu</p>
+                                                                                <p style="margin-top: 10px";>Terima Kasih Atas Kunjungan Anda</p>
+                                                                            </div>
+                                                                            <div style="text-align: center; ">
 
-                                                                    </div>
-                                                                </div>
-                                                                `;
+                                                                            </div>
+                                                                        </div>
+                                                                        `;
 
                         // Masukkan HTML ke area cetak
                         $('#printable-area').html(receiptHtml);
