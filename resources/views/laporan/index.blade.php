@@ -212,8 +212,7 @@
                                             </div>
                                         @empty
                                             <tr>
-                                                <td colspan="{{ !isset($tanggal_pencarian) ? '7' : '6' }}" class="text-center">
-                                                    Belum ada data transaksi.</td>
+                                                <td colspan="7" class="text-center">Belum ada data transaksi.</td>
                                             </tr>
                                         @endforelse
                                     </tbody>
