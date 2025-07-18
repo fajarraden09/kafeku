@@ -41,7 +41,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="stokTableBody">
-                                        @foreach ($data as $d)
+                                        @forelse ($data as $d)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>{{ $d->nama_bahan }}</td>
@@ -119,7 +119,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="7" class="text-center">Belum ada data bahan baku.</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>

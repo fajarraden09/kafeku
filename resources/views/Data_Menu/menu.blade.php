@@ -49,7 +49,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="menuTableBody">
-                                        @foreach ($data as $d)
+                                        @forelse ($data as $d)
                                             <tr>
                                                 <td>{{ $loop->iteration }}</td>
                                                 <td>
@@ -117,7 +117,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endforeach
+                                        @empty
+                                            <tr>
+                                                <td colspan="7" class="text-center">Belum ada data menu.</td>
+                                            </tr>
+                                        @endforelse
                                     </tbody>
                                 </table>
                             </div>
