@@ -67,11 +67,62 @@ class LaporanController extends Controller
         return redirect()->route('owner.laporan.index')->with('success', 'Riwayat transaksi berhasil dihapus secara permanen.');
     }
 
-    public function laporanStok()
+    public function laporanStok(Request $request)
     {
-        $bahanMasuk = BatchBahanBaku::with('bahanBaku', 'user')->latest()->get();
-        $bahanKeluar = BahanBakuKeluar::with('bahanBaku', 'user')->latest()->get();
-        $stokSaatIni = BahanBaku::orderBy('stok', 'asc')->get();
+        // Menggunakan Carbon untuk manipulasi tanggal
+        // Pastikan Anda sudah menambahkan 'use Carbon\Carbon;' di bagian atas file controller.
+
+        // Query dasar untuk bahan masuk dan keluar
+        $queryMasuk = BatchBahanBaku::with('bahanBaku', 'user');
+        $queryKeluar = BahanBakuKeluar::with('bahanBaku', 'user');
+
+        // Cek jika ada parameter filter dari tombol cepat
+        if ($request->has('filter')) {
+            $filter = $request->input('filter');
+            $today = Carbon::today();
+
+            switch ($filter) {
+                case 'hari_ini':
+                    $queryMasuk->whereDate('created_at', $today);
+                    $queryKeluar->whereDate('created_at', $today);
+                    break;
+                case 'kemarin':
+                    $yesterday = Carbon::yesterday();
+                    $queryMasuk->whereDate('created_at', $yesterday);
+                    $queryKeluar->whereDate('created_at', $yesterday);
+                    break;
+                case 'minggu_ini':
+                    $startOfWeek = $today->startOfWeek();
+                    $endOfWeek = $today->endOfWeek();
+                    $queryMasuk->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+                    $queryKeluar->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+                    break;
+                case 'bulan_ini':
+                    $startOfMonth = $today->startOfMonth();
+                    $endOfMonth = $today->endOfMonth();
+                    $queryMasuk->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                    $queryKeluar->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+                    break;
+            }
+        } 
+        // Cek jika ada filter dari input tanggal kustom
+        elseif ($request->filled('start_date') && $request->filled('end_date')) {
+            $startDate = Carbon::parse($request->start_date)->startOfDay();
+            $endDate = Carbon::parse($request->end_date)->endOfDay();
+
+            $queryMasuk->whereBetween('created_at', [$startDate, $endDate]);
+            $queryKeluar->whereBetween('created_at', [$startDate, $endDate]);
+        }
+
+        // Ambil data riwayat yang sudah difilter dan urutkan dari yang terbaru
+        $bahanMasuk = $queryMasuk->latest()->get();
+        $bahanKeluar = $queryKeluar->latest()->get();
+
+        // Data stok saat ini TIDAK terpengaruh oleh filter tanggal di atas.
+        // Query ini tetap mengambil data stok terbaru secara keseluruhan.
+        $stokSaatIni = BahanBaku::orderBy('nama_bahan', 'asc')->get();
+
+        // Kirim semua data yang dibutuhkan ke view
         return view('laporan.stok', compact('bahanMasuk', 'bahanKeluar', 'stokSaatIni'));
     }
 
