@@ -71,60 +71,52 @@ class LaporanController extends Controller
 
     public function laporanStok(Request $request)
     {
-        // Query dasar untuk bahan masuk dan keluar
         $queryMasuk = BatchBahanBaku::with('bahanBaku', 'user');
         $queryKeluar = BahanBakuKeluar::with('bahanBaku', 'user');
+        
+        // Inisialisasi variabel tanggal pencarian
+        $tanggal_pencarian = null;
 
-        // Cek jika ada parameter filter dari tombol cepat (hari ini, minggu ini, dll.)
-        if ($request->has('filter')) {
+        // Kondisi 1: Jika ada input tanggal dari form pencarian
+        if ($request->has('tanggal') && $request->tanggal) {
+            $tanggal_pencarian = Carbon::parse($request->tanggal)->format('Y-m-d');
+            $queryMasuk->whereDate('created_at', $tanggal_pencarian);
+            $queryKeluar->whereDate('created_at', $tanggal_pencarian);
+        }
+        // Kondisi 2: Jika ada filter dari tombol cepat
+        elseif ($request->has('filter')) {
             $filter = $request->input('filter');
             $today = Carbon::today();
 
             switch ($filter) {
                 case 'hari_ini':
-                    $queryMasuk->whereDate('created_at', $today);
-                    $queryKeluar->whereDate('created_at', $today);
-                    break;
-                case 'kemarin':
-                    $yesterday = Carbon::yesterday();
-                    $queryMasuk->whereDate('created_at', $yesterday);
-                    $queryKeluar->whereDate('created_at', $yesterday);
+                    // Set tanggal pencarian untuk logika di view (misal: judul laporan)
+                    $tanggal_pencarian = $today->format('Y-m-d');
+                    $queryMasuk->whereDate('created_at', $tanggal_pencarian);
+                    $queryKeluar->whereDate('created_at', $tanggal_pencarian);
                     break;
                 case 'minggu_ini':
-                    // Menggunakan startOfWeek() dan endOfWeek() dari Carbon
                     $startOfWeek = $today->copy()->startOfWeek();
                     $endOfWeek = $today->copy()->endOfWeek();
                     $queryMasuk->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
                     $queryKeluar->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
                     break;
                 case 'bulan_ini':
-                    // Menggunakan startOfMonth() dan endOfMonth() dari Carbon
                     $startOfMonth = $today->copy()->startOfMonth();
                     $endOfMonth = $today->copy()->endOfMonth();
                     $queryMasuk->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
                     $queryKeluar->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
                     break;
             }
-        } 
-        // Cek jika ada filter dari input tanggal kustom
-        elseif ($request->filled('start_date') && $request->filled('end_date')) {
-            $startDate = Carbon::parse($request->start_date)->startOfDay();
-            $endDate = Carbon::parse($request->end_date)->endOfDay();
-
-            $queryMasuk->whereBetween('created_at', [$startDate, $endDate]);
-            $queryKeluar->whereBetween('created_at', [$startDate, $endDate]);
         }
-
-        // Ambil data riwayat yang sudah difilter dan urutkan dari yang terbaru
+        
         $bahanMasuk = $queryMasuk->latest()->get();
         $bahanKeluar = $queryKeluar->latest()->get();
 
-        // Data stok saat ini TIDAK terpengaruh oleh filter tanggal di atas.
-        // Query ini tetap mengambil data stok terbaru secara keseluruhan.
+        // Stok saat ini tetap tidak terpengaruh filter
         $stokSaatIni = BahanBaku::orderBy('nama_bahan', 'asc')->get();
 
-        // Kirim semua data yang dibutuhkan ke view
-        return view('laporan.stok', compact('bahanMasuk', 'bahanKeluar', 'stokSaatIni'));
+        return view('laporan.stok', compact('bahanMasuk', 'bahanKeluar', 'stokSaatIni', 'tanggal_pencarian'));
     }
 
     public function cancelAndRestock($id)
