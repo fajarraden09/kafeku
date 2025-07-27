@@ -67,16 +67,15 @@ class LaporanController extends Controller
         return redirect()->route('owner.laporan.index')->with('success', 'Riwayat transaksi berhasil dihapus secara permanen.');
     }
 
+   // app/Http/Controllers/LaporanController.php
+
     public function laporanStok(Request $request)
     {
-        // Menggunakan Carbon untuk manipulasi tanggal
-        // Pastikan Anda sudah menambahkan 'use Carbon\Carbon;' di bagian atas file controller.
-
         // Query dasar untuk bahan masuk dan keluar
         $queryMasuk = BatchBahanBaku::with('bahanBaku', 'user');
         $queryKeluar = BahanBakuKeluar::with('bahanBaku', 'user');
 
-        // Cek jika ada parameter filter dari tombol cepat
+        // Cek jika ada parameter filter dari tombol cepat (hari ini, minggu ini, dll.)
         if ($request->has('filter')) {
             $filter = $request->input('filter');
             $today = Carbon::today();
@@ -92,14 +91,16 @@ class LaporanController extends Controller
                     $queryKeluar->whereDate('created_at', $yesterday);
                     break;
                 case 'minggu_ini':
-                    $startOfWeek = $today->startOfWeek();
-                    $endOfWeek = $today->endOfWeek();
+                    // Menggunakan startOfWeek() dan endOfWeek() dari Carbon
+                    $startOfWeek = $today->copy()->startOfWeek();
+                    $endOfWeek = $today->copy()->endOfWeek();
                     $queryMasuk->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
                     $queryKeluar->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
                     break;
                 case 'bulan_ini':
-                    $startOfMonth = $today->startOfMonth();
-                    $endOfMonth = $today->endOfMonth();
+                    // Menggunakan startOfMonth() dan endOfMonth() dari Carbon
+                    $startOfMonth = $today->copy()->startOfMonth();
+                    $endOfMonth = $today->copy()->endOfMonth();
                     $queryMasuk->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
                     $queryKeluar->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
                     break;
