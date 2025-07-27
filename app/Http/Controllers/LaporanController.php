@@ -69,16 +69,19 @@ class LaporanController extends Controller
 
    // app/Http/Controllers/LaporanController.php
 
+    // app/Http/Controllers/LaporanController.php
+
     public function laporanStok(Request $request)
     {
-        $queryMasuk = BatchBahanBaku::with('bahanBaku', 'user');
-        $queryKeluar = BahanBakuKeluar::with('bahanBaku', 'user');
+        // Query dasar untuk bahan masuk dan keluar, diurutkan dari yang terbaru
+        $queryMasuk = BatchBahanBaku::with('bahanBaku', 'user')->latest();
+        $queryKeluar = BahanBakuKeluar::with('bahanBaku', 'user')->latest();
         
         // Inisialisasi variabel tanggal pencarian
         $tanggal_pencarian = null;
 
         // Kondisi 1: Jika ada input tanggal dari form pencarian
-        if ($request->has('tanggal') && $request->tanggal) {
+        if ($request->filled('tanggal')) {
             $tanggal_pencarian = Carbon::parse($request->tanggal)->format('Y-m-d');
             $queryMasuk->whereDate('created_at', $tanggal_pencarian);
             $queryKeluar->whereDate('created_at', $tanggal_pencarian);
@@ -90,17 +93,24 @@ class LaporanController extends Controller
 
             switch ($filter) {
                 case 'hari_ini':
-                    // Set tanggal pencarian untuk logika di view (misal: judul laporan)
                     $tanggal_pencarian = $today->format('Y-m-d');
                     $queryMasuk->whereDate('created_at', $tanggal_pencarian);
                     $queryKeluar->whereDate('created_at', $tanggal_pencarian);
                     break;
+                
+                // --- BAGIAN YANG DIPERBAIKI ---
                 case 'minggu_ini':
-                    $startOfWeek = $today->copy()->startOfWeek();
-                    $endOfWeek = $today->copy()->endOfWeek();
-                    $queryMasuk->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
-                    $queryKeluar->whereBetween('created_at', [$startOfWeek, $endOfWeek]);
+                    // Logika baru: 7 Hari Terakhir
+                    // Tanggal akhir adalah hari ini jam 23:59:59
+                    $endDate = $today->copy()->endOfDay();
+                    // Tanggal mulai adalah 6 hari sebelum hari ini jam 00:00:00
+                    $startDate = $today->copy()->subDays(6)->startOfDay();
+                    
+                    $queryMasuk->whereBetween('created_at', [$startDate, $endDate]);
+                    $queryKeluar->whereBetween('created_at', [$startDate, $endDate]);
                     break;
+                // --- AKHIR BAGIAN YANG DIPERBAIKI ---
+
                 case 'bulan_ini':
                     $startOfMonth = $today->copy()->startOfMonth();
                     $endOfMonth = $today->copy()->endOfMonth();
@@ -110,8 +120,9 @@ class LaporanController extends Controller
             }
         }
         
-        $bahanMasuk = $queryMasuk->latest()->get();
-        $bahanKeluar = $queryKeluar->latest()->get();
+        // Eksekusi query untuk mendapatkan hasilnya
+        $bahanMasuk = $queryMasuk->get();
+        $bahanKeluar = $queryKeluar->get();
 
         // Stok saat ini tetap tidak terpengaruh filter
         $stokSaatIni = BahanBaku::orderBy('nama_bahan', 'asc')->get();
