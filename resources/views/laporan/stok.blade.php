@@ -49,7 +49,7 @@
                                 {{-- DIUBAH: Menggunakan route() pada action form --}}
                                 <form action="{{ route('owner.laporan.stok') }}" method="GET" class="d-flex">
                                     <input type="date" class="form-control" name="tanggal"
-                                           value="{{ $tanggal_pencarian ?? '' }}">
+                                        value="{{ $tanggal_pencarian ?? '' }}">
                                     <button class="btn btn-primary ml-2" type="submit">
                                         <i class="fas fa-search"></i>
                                     </button>
