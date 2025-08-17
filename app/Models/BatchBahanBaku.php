@@ -22,8 +22,9 @@ class BatchBahanBaku extends Model
     ];
 
     protected $casts = [
-        'tanggal_masuk'      => 'date',
-        'tanggal_kadaluarsa' => 'date',
+        'tanggal_masuk'      => 'datetime',
+        'tanggal_kadaluarsa' => 'datetime',
+        'notifikasi_kadaluarsa_terakhir_dikirim_at' => 'datetime', 
     ];
 
     public function bahanBaku()

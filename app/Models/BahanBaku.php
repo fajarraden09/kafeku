@@ -12,6 +12,11 @@ class BahanBaku extends Model
 
     protected $table = 'bahan_baku';
 
+    protected $casts = [
+        'notifikasi_stok_terakhir_dikirim_at' => 'datetime',
+        // ... pastikan cast lain yang sudah ada tidak terhapus ...
+    ];
+
     protected $fillable = [
         'nama_bahan',
         'stok',
