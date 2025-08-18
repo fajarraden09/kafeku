@@ -12,7 +12,7 @@ use Carbon\Carbon;
 
 class StockNotificationService
 {
-    const NOTIFICATION_INTERVAL_DAYS = 5; // Interval pengiriman notifikasi dalam hari
+    const NOTIFICATION_INTERVAL_DAYS = 4; // Interval pengiriman notifikasi dalam hari
 
     /**
      * Memeriksa apakah notifikasi boleh dikirim berdasarkan interval waktu.

@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon; 
+use App\Services\StockRestoreService;
 
 class LaporanController extends Controller
 {
@@ -130,46 +131,38 @@ class LaporanController extends Controller
         return view('laporan.stok', compact('bahanMasuk', 'bahanKeluar', 'stokSaatIni', 'tanggal_pencarian'));
     }
 
-    public function cancelAndRestock($id)
+    public function cancel($id)
     {
-        // Eager load semua relasi yang dibutuhkan dalam satu query
-        $transaksi = Transaksi::with('detailTransaksi.menu.resep.bahanBaku')->find($id);
+        // Eager load hanya relasi yang dibutuhkan untuk proses pembatalan
+        $transaksi = Transaksi::with('detailTransaksi')->find($id);
 
         if (!$transaksi) {
-            return redirect()->route('owner.laporan.index')->with('error', 'Transaksi tidak ditemukan.');
+            return redirect()->back()->with('error', 'Transaksi tidak ditemukan.');
         }
 
-        DB::beginTransaction();
         try {
-            foreach ($transaksi->detailTransaksi as $detail) {
-                if ($detail->menu && $detail->menu->resep->isNotEmpty()) {
-                    foreach ($detail->menu->resep as $resepItem) {
-                        if ($resepItem->bahanBaku) {
-                            $jumlahDipesan = $detail->jumlah;
-                            
-                            //❗️ PERBAIKAN DI SINI: Sesuaikan dengan nama kolom Anda
-                            $stokPerResep = $resepItem->jumlah_dibutuhkan;
-                            
-                            $stokUntukDikembalikan = $jumlahDipesan * $stokPerResep;
-
-                            $resepItem->bahanBaku->increment('stok', $stokUntukDikembalikan);
-                        }
-                    }
+            DB::transaction(function () use ($transaksi) {
+                // 1. Panggil service untuk mengembalikan stok untuk setiap item pesanan.
+                // Service akan membaca log konsumsi yang sudah tercatat.
+                foreach ($transaksi->detailTransaksi as $detail) {
+                    StockRestoreService::restore($detail);
                 }
-            }
 
-            // Hapus transaksi secara permanen
-            $transaksi->forceDelete();
+                // 2. Hapus data transaksi.
+                // Logika di model Transaksi akan menghapus detailnya secara otomatis.
+                $transaksi->delete();
 
-            DB::commit();
-            return redirect()->route('owner.laporan.index')->with('success', 'Transaksi berhasil dibatalkan dan stok bahan baku telah dikembalikan.');
+                Log::info("Transaksi {$transaksi->kode_transaksi} berhasil dibatalkan dan stok dikembalikan.");
+            });
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Gagal Batalkan Transaksi ID ' . $id . ': ' . $e->getMessage());
-            return redirect()->route('owner.laporan.index')->with('error', 'Terjadi kesalahan saat membatalkan transaksi. Silakan coba lagi.');
+            return redirect()->route('owner.laporan.index')->with('success', 'Transaksi berhasil dibatalkan dan stok telah dikembalikan dengan benar.');
+
+        } catch (\Throwable $e) {
+            Log::error("Gagal membatalkan transaksi ID {$id}: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal membatalkan transaksi. Terjadi kesalahan pada server.');
         }
     }
+
     /**
      * Menyiapkan dan menampilkan halaman untuk mencetak laporan harian.
      */
