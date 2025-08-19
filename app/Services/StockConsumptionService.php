@@ -3,21 +3,21 @@
 namespace App\Services;
 
 use App\Models\BahanBaku;
-use App\Models\LogKonsumsiBatch; // WAJIB: Import model LogKonsumsiBatch
+use App\Models\LogKonsumsiBatch;
 use Illuminate\Support\Facades\Log;
 
 class StockConsumptionService
 {
     /**
-     * Mengurangi stok bahan baku (FEFO) dan mencatat log konsumsi untuk setiap batch.
+     * Mengurangi stok bahan baku (FEFO) dan secara opsional mencatat log konsumsi.
      *
      * @param BahanBaku $bahanBaku Objek BahanBaku yang stoknya akan dikurangi.
      * @param float $quantity Jumlah bahan baku yang akan dikurangi.
-     * @param int $detailTransaksiId ID dari detail transaksi untuk keperluan logging.
+     * @param int|null $detailTransaksiId ID detail transaksi (opsional), hanya untuk logging.
      * @return void
      * @throws \Exception Jika stok tidak cukup.
      */
-    public static function consume(BahanBaku $bahanBaku, float $quantity, int $detailTransaksiId): void
+    public static function consume(BahanBaku $bahanBaku, float $quantity, ?int $detailTransaksiId = null): void
     {
         if ($quantity <= 0) {
             return; // Tidak ada yang perlu dikurangi
@@ -48,14 +48,14 @@ class StockConsumptionService
                 // Kurangi stok dari batch
                 $batch->decrement('sisa_stok', $deductAmount);
 
-                // ---- [UPGRADE] ----
-                // Buat "jejak digital" di tabel log konsumsi.
-                LogKonsumsiBatch::create([
-                    'detail_transaksi_id' => $detailTransaksiId,
-                    'batch_bahan_baku_id' => $batch->id,
-                    'jumlah_diambil'      => $deductAmount,
-                ]);
-                // -------------------
+                // Hanya buat log jika detailTransaksiId diberikan (bukan null).
+                if ($detailTransaksiId !== null) {
+                    LogKonsumsiBatch::create([
+                        'detail_transaksi_id' => $detailTransaksiId,
+                        'batch_bahan_baku_id' => $batch->id,
+                        'jumlah_diambil'      => $deductAmount,
+                    ]);
+                }
 
                 $remainingQuantityToConsume -= $deductAmount;
             }
