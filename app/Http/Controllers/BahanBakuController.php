@@ -7,6 +7,7 @@ use App\Models\BatchBahanBaku; // Import model BatchBahanBaku Anda
 use App\Services\MenuAvailabilityService;
 use Illuminate\Http\Request;
 use Carbon\Carbon; // Import Carbon untuk manipulasi tanggal
+use Illuminate\Database\QueryException;
 
 class BahanBakuController extends Controller
 {
@@ -42,7 +43,7 @@ class BahanBakuController extends Controller
     {
         $request->validate([
             'nama_bahan'    => 'required|string|max:255|unique:bahan_baku,nama_bahan',
-            'stok'          => 'required|numeric|min:0',
+            // 'stok'          => 'required|numeric|min:0',
             'satuan'        => 'required|string|max:50',
             'batas_minimum' => 'required|numeric|min:0',
         ]);
@@ -64,7 +65,7 @@ class BahanBakuController extends Controller
     {
         $request->validate([
             'nama_bahan'    => 'required|string|max:255',
-            'stok'          => 'required|integer|min:0',
+            // 'stok'          => 'required|integer|min:0',
             'satuan'        => 'required|string|max:50',
             'batas_minimum' => 'required|integer|min:0',
         ]);
@@ -89,17 +90,51 @@ class BahanBakuController extends Controller
 
     public function delete(string $id)
     {
-        $bahanBaku = BahanBaku::findOrFail($id);
+        // Gunakan withTrashed() untuk bisa menemukan data meski sudah di soft-delete
+        $bahanBaku = BahanBaku::withTrashed()->find($id);
 
-        // <-- 3. TAMBAHKAN PROTEKSI PENGHAPUSAN -->
-        // Cek apakah bahan baku ini digunakan dalam resep
-        if ($bahanBaku->resep()->exists()) {
-            return redirect()->route('owner.bahan_baku')
-                ->with('error', 'Gagal! Bahan baku "' . $bahanBaku->nama_bahan . '" masih digunakan dalam resep menu.');
+        if (!$bahanBaku) {
+            return redirect()->back()->with('error', 'Bahan baku tidak ditemukan.');
         }
 
-        $bahanBaku->delete();
+        try {
+            // Coba untuk menghapus secara permanen.
+            // Jika Anda ingin menggunakan Soft Delete (SANGAT DISARANKAN),
+            // ganti baris di bawah ini dengan: $bahanBaku->delete();
+            $bahanBaku->forceDelete();
 
-        return redirect()->route('owner.bahan_baku')->with('success', 'Bahan baku berhasil dihapus.');
+            return redirect()->route('owner.bahan_baku')->with('success', "Bahan baku '{$bahanBaku->nama_bahan}' berhasil dihapus permanen.");
+
+        } catch (QueryException $e) {
+            // Cek jika error adalah karena foreign key (kode SQLSTATE 23000)
+            if ($e->getCode() === '23000') {
+                
+                // Siapkan pesan error awal yang ramah pengguna
+                $pesan = "Gagal menghapus '{$bahanBaku->nama_bahan}'. Bahan baku ini masih digunakan.";
+
+                // Cek data anak untuk memberikan detail yang lebih spesifik
+                $dependencies = [];
+                if ($bahanBaku->resep()->exists()) {
+                    $dependencies[] = 'Resep Menu';
+                }
+                if ($bahanBaku->batches()->exists()) {
+                    $dependencies[] = 'Riwayat Stok Masuk';
+                }
+                if ($bahanBaku->bahanKeluar()->exists()) { // Menggunakan nama relasi Anda: bahanKeluar()
+                    $dependencies[] = 'Riwayat Stok Keluar';
+                }
+
+                // Jika ditemukan data anak, tambahkan detailnya ke pesan
+                if (!empty($dependencies)) {
+                    $pesan .= " Data terkait ditemukan di: " . implode(', ', $dependencies) . ".";
+                }
+
+                // Arahkan kembali dengan pesan error yang sudah jelas
+                return redirect()->back()->with('error', $pesan);
+            }
+
+            // Untuk jenis error database lainnya
+            return redirect()->back()->with('error', 'Terjadi kesalahan pada database. Silakan coba lagi.');
+        }
     }
 }

@@ -29,12 +29,12 @@
                                             placeholder="Masukan Nama Bahan" value="{{ old('nama_bahan') }}">
                                         @error('nama_bahan') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
-                                    <div class="form-group">
+                                    {{-- <div class="form-group">
                                         <label for="stok">Stok Awal</label>
                                         <input type="number" name="stok" class="form-control"
                                             placeholder="Masukan Jumlah Stok" value="{{ old('stok') }}">
                                         @error('stok') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
+                                    </div> --}}
                                     <div class="form-group">
                                         <label for="satuan">Satuan</label>
                                         <input type="text" name="satuan" class="form-control"

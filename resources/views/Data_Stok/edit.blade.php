@@ -30,11 +30,11 @@
                                             value="{{ $data->nama_bahan }}">
                                         @error('nama_bahan') <small class="text-danger">{{ $message }}</small> @enderror
                                     </div>
-                                    <div class="form-group">
+                                    {{-- <div class="form-group">
                                         <label for="stok">Stok</label>
                                         <input type="number" name="stok" class="form-control" value="{{ $data->stok }}">
                                         @error('stok') <small class="text-danger">{{ $message }}</small> @enderror
-                                    </div>
+                                    </div> --}}
                                     <div class="form-group">
                                         <label for="satuan">Satuan</label>
                                         <input type="text" name="satuan" class="form-control" value="{{ $data->satuan }}">
