@@ -52,13 +52,12 @@ class BahanMasukController extends Controller
         try {
             DB::transaction(function () use ($request) {
                 // 1. Buat record baru di tabel batch_bahan_baku
-                $batch = BatchBahanBaku::create([
+                BatchBahanBaku::create([
                     'bahan_baku_id'     => $request->bahan_baku_id,
                     'user_id'           => Auth::id(),
                     'jumlah_awal'       => $request->jumlah_awal,
-                    'sisa_stok'         => $request->jumlah_awal, // Sisa stok awal = jumlah masuk
+                    'sisa_stok'         => $request->jumlah_awal,
                     'tanggal_kadaluarsa'=> $request->tanggal_kadaluarsa,
-                    // 'kode_batch' bisa digenerate otomatis jika perlu
                 ]);
 
                 // 2. SINKRONISASI: Tambah stok di tabel utama bahan_baku
@@ -70,19 +69,14 @@ class BahanMasukController extends Controller
                 }
 
                 // == SINKRONISASI SERVICE SETELAH STOK BERTAMBAH ==
-                // Ambil data bahan baku terbaru setelah penambahan stok
                 $bahanBakuFresh = $bahanBakuUtama->fresh();
 
-                // 1. Reset flag notifikasi jika stok sudah kembali aman (ini hanya untuk stok total)
-                StockNotificationService::resetNotificationFlag($bahanBakuFresh);
-
-                // 2. PENTING: Panggil checkAndNotify untuk memeriksa semua kondisi notifikasi,
-                // termasuk kadaluarsa, untuk bahan baku yang baru ditambahkan/diperbarui.
+                // Panggil checkAndNotify untuk memeriksa semua kondisi notifikasi.
+                // Fungsi ini sudah mencakup logika untuk mereset notifikasi jika stok kembali aman.
                 StockNotificationService::checkAndNotify($bahanBakuFresh);
 
-
-                // 3. SINKRONISASI: Update ketersediaan menu yang menggunakan bahan ini
-                $resepTerkait = $bahanBakuFresh->resep()->with('menu')->get(); // Gunakan $bahanBakuFresh
+                // SINKRONISASI: Update ketersediaan menu yang menggunakan bahan ini
+                $resepTerkait = $bahanBakuFresh->resep()->with('menu')->get();
                 foreach ($resepTerkait as $resep) {
                     if ($resep->menu) {
                         MenuAvailabilityService::update($resep->menu);
@@ -93,13 +87,9 @@ class BahanMasukController extends Controller
             return redirect()->route('owner.bahan_masuk')->with('success', 'Riwayat bahan masuk berhasil ditambahkan.');
 
         } catch (Throwable $e) {
-            // Ini akan menghentikan eksekusi dan menampilkan pesan error di browser
-            // JANGAN LUPA HAPUS BARIS INI SETELAH MENDAPATKAN ERRORNYA DAN MASALAH TERATASI
-            dd($e->getMessage());
-
-            // Atau, jika Anda ingin logging tanpa menghentikan aplikasi:
-            // \Log::error("Error saat menyimpan bahan masuk: " . $e->getMessage());
-            // return redirect()->back()->withInput()->with('error', 'Gagal mencatat bahan masuk. Silakan coba lagi.');
+            // Hentikan eksekusi dan tampilkan pesan error untuk debugging
+            // return redirect()->back()->withInput()->with('error', 'Gagal mencatat bahan masuk: ' . $e->getMessage());
+            dd($e->getMessage()); 
         }
     }
 

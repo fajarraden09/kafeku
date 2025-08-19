@@ -39,7 +39,7 @@ class BahanKeluarController extends Controller
     /**
      * Menyimpan data bahan keluar & SINKRONISASI PENGURANGAN STOK (FEFO).
      */
-     public function store(Request $request)
+    public function store(Request $request)
     {
         Log::info('--- STEP 1: Memulai proses Bahan Keluar ---');
         Log::info('Data Request:', $request->all());
