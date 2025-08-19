@@ -59,7 +59,7 @@
                             <div class="icon">
                                 <i class="ion ion-star"></i>
                             </div>
-                            <a href="{{ route('owner.menu') }}" class="small-box-footer">Lihat Detail <i
+                            <a href="{{ route('owner.laporan.menu_terlaris') }}" class="small-box-footer">Lihat Detail <i
                                     class="fas fa-arrow-circle-right"></i></a>
                         </div>
                     </div>

@@ -89,10 +89,12 @@ Route::group(['prefix' => 'owner', 'middleware' => ['auth'], 'as' => 'owner.'], 
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
     Route::get('/laporan/detail/{id}', [LaporanController::class, 'show'])->name('laporan.show');
     Route::get('/laporan/harian', [LaporanController::class, 'laporanHarian'])->name('laporan.harian');
-    Route::delete('/laporan/cancel/{id}', [LaporanController::class, 'cancelAndRestock'])->name('laporan.cancel');
+    Route::delete('/laporan/cancel/{id}', [LaporanController::class, 'cancel'])->name('laporan.cancel');
+    // Route::delete('/laporan/cancel/{id}', [LaporanController::class, 'cancelAndRestock'])->name('laporan.cancel');
     Route::delete('/laporan/{id}/force-delete', [LaporanController::class, 'forceDelete'])->name('laporan.forcedelete');
     Route::get('/laporan/cetak-harian', [LaporanController::class, 'cetakLaporanHarian'])->name('laporan.cetak.harian');
     Route::get('/laporan/stok', [LaporanController::class, 'laporanStok'])->name('laporan.stok');
+    Route::get('/laporan/menu-terlaris', [LaporanController::class, 'menuTerlaris'])->name('laporan.menu_terlaris');
 
     // Route untuk mengubah status transaksi menjadi lunas
     Route::post('/transaksi/{id}/mark-as-paid', [TransaksiController::class, 'markAsPaid'])->name('transaksi.markAsPaid');

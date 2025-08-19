@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon; 
 use App\Services\StockRestoreService;
+use App\Models\DetailTransaksi;
 
 class LaporanController extends Controller
 {
@@ -184,4 +185,22 @@ class LaporanController extends Controller
         // Kirim data ke view khusus untuk cetak
         return view('laporan.cetak_harian', compact('transaksi', 'totalPendapatan', 'tanggal'));
     }   
+
+    public function menuTerlaris()
+    {
+        // Query untuk mengambil data penjualan dari detail_transaksi
+        $menuTerlaris = DetailTransaksi::select(
+                'menu_id',
+                DB::raw('SUM(jumlah) as total_terjual'),
+                DB::raw('SUM(subtotal) as total_pendapatan')
+            )
+            ->with('menu') // Eager load relasi ke model Menu
+            ->whereHas('menu') // Hanya ambil yang relasi menu-nya masih ada
+            ->groupBy('menu_id')
+            ->orderBy('total_terjual', 'desc') // Urutkan dari yang paling banyak terjual
+            ->get();
+            
+        // Kirim data ke view
+        return view('laporan.menu_laris', compact('menuTerlaris'));
+    }
 }
