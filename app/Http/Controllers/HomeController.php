@@ -114,9 +114,14 @@ class HomeController extends Controller
         $endRange = ($periode == 'daily') ? Carbon::today()->endOfDay() : $endDate;
 
         $bestSellingMenu = DetailTransaksi::select('menu_id', DB::raw('SUM(jumlah) as total_terjual'))
-            ->whereHas('transaksi', function ($query) use ($startRange, $endRange) {
-                $query->whereBetween('created_at', [$startRange, $endRange]);
-            })->groupBy('menu_id')->orderByDesc('total_terjual')->with('menu')->first();
+        ->whereNotNull('menu_id') // <--- TAMBAHKAN BARIS INI
+        ->whereHas('transaksi', function ($query) use ($startRange, $endRange) {
+            $query->whereBetween('created_at', [$startRange, $endRange]);
+        })
+        ->groupBy('menu_id')
+        ->orderByDesc('total_terjual')
+        ->with('menu')
+        ->first();
 
         return view('dashboard', [
             'lowStockItems' => $lowStockItems,
