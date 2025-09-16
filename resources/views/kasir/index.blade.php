@@ -113,12 +113,14 @@
                                     </div>
                                     <hr>
                                     <h4>Total: <span id="total-price">Rp 0</span></h4>
-                                    <div class="form-group mt-3">
-                                        <label for="uang_dibayar">Uang Dibayar</label>
-                                        <input type="text" id="uang_dibayar" class="form-control form-control-lg"
-                                            placeholder="Masukkan jumlah uang...">
+                                    <div id="kalkulator-kembalian-wrapper">
+                                        <div class="form-group mt-3">
+                                            <label for="uang_dibayar">Uang Dibayar</label>
+                                            <input type="text" id="uang_dibayar" class="form-control form-control-lg"
+                                                placeholder="Masukkan jumlah uang...">
+                                        </div>
+                                        <h4 class="mt-2">Kembalian: <span id="uang_kembalian">Rp 0</span></h4>
                                     </div>
-                                    <h4 class="mt-2">Kembalian: <span id="uang_kembalian">Rp 0</span></h4>
 
                                     <div class="mt-3">
                                         <strong>Metode Pembayaran:</strong>
@@ -402,47 +404,64 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // 1. Pilih elemen yang dibutuhkan dari halaman
+            // --- Bagian A: Kode yang sudah ada untuk kalkulator ---
             const uangDibayarInput = document.getElementById('uang_dibayar');
             const totalPriceElement = document.getElementById('total-price');
             const uangKembalianElement = document.getElementById('uang_kembalian');
+            // Pastikan elemen kalkulator ada
+            if (uangDibayarInput && totalPriceElement && uangKembalianElement) {
+                function hitungDanTampilkanKembalian() {
+                    // ... (Fungsi ini tidak berubah sama sekali)
+                    const totalHargaTeks = totalPriceElement.textContent;
+                    const totalHarga = parseFloat(totalHargaTeks.replace(/[^0-9]/g, '')) || 0;
+                    const uangDibayar = parseFloat(uangDibayarInput.value.replace(/[^0-9]/g, '')) || 0;
+                    let nilaiInput = uangDibayarInput.value.replace(/[^0-9]/g, '');
+                    if (nilaiInput) {
+                        uangDibayarInput.value = parseInt(nilaiInput, 10).toLocaleString('id-ID');
+                    } else {
+                        uangDibayarInput.value = '';
+                    }
 
-            // Pastikan semua elemen ada sebelum melanjutkan
-            if (!uangDibayarInput || !totalPriceElement || !uangKembalianElement) {
-                return;
+                    let kembalian = 0;
+                    if (uangDibayar >= totalHarga) {
+                        kembalian = uangDibayar - totalHarga;
+                    }
+                    uangKembalianElement.textContent = `Rp ${kembalian.toLocaleString('id-ID')}`;
+                }
+                uangDibayarInput.addEventListener('input', hitungDanTampilkanKembalian);
             }
 
-            // 2. Buat fungsi untuk menghitung dan menampilkan kembalian
-            function hitungDanTampilkanKembalian() {
-                // Ambil teks dari total harga (contoh: "Rp 50.000")
-                const totalHargaTeks = totalPriceElement.textContent;
-                // Bersihkan teks menjadi angka saja (contoh: "50000")
-                const totalHarga = parseFloat(totalHargaTeks.replace(/[^0-9]/g, '')) || 0;
+            // --- Bagian B: LOGIKA BARU UNTUK MENAMPILKAN/SEMBUNYIKAN KALKULATOR ---
+            // 1. Pilih elemen yang dibutuhkan
+            const kalkulatorWrapper = document.getElementById('kalkulator-kembalian-wrapper');
+            const metodePembayaranRadios = document.querySelectorAll('input[name="metode_pembayaran"]');
 
-                // Ambil nilai dari input uang dibayar dan bersihkan juga
-                const uangDibayar = parseFloat(uangDibayarInput.value.replace(/[^0-9]/g, '')) || 0;
-
-                // Format input agar ada titik ribuan saat diketik
-                let nilaiInput = uangDibayarInput.value.replace(/[^0-9]/g, '');
-                if (nilaiInput) {
-                    uangDibayarInput.value = parseInt(nilaiInput, 10).toLocaleString('id-ID');
+            // 2. Buat fungsi untuk mengecek dan mengubah visibilitas
+            function toggleKalkulatorVisibility() {
+                // Dapatkan radio button yang sedang dipilih
+                const selectedMetode = document.querySelector('input[name="metode_pembayaran"]:checked');
+                if (selectedMetode && selectedMetode.value === 'Tunai') {
+                    // Jika "Tunai", tampilkan kalkulator
+                    kalkulatorWrapper.style.display = 'block';
                 } else {
-                    uangDibayarInput.value = '';
+                    // Jika bukan "Tunai", sembunyikan kalkulator
+                    kalkulatorWrapper.style.display = 'none';
+                    // (Opsional) Kosongkan input saat disembunyikan agar bersih
+                    if (uangDibayarInput) {
+                        uangDibayarInput.value = '';
+                        hitungDanTampilkanKembalian(); // Panggil agar tulisan kembalian reset ke Rp 0
+                    }
                 }
-
-                // Hitung kembalian
-                let kembalian = 0;
-                if (uangDibayar >= totalHarga) {
-                    kembalian = uangDibayar - totalHarga;
-                }
-
-                // Tampilkan hasilnya dengan format Rupiah
-                uangKembalianElement.textContent = `Rp ${kembalian.toLocaleString('id-ID')}`;
             }
 
-            // 3. Tambahkan event listener ke input "Uang Dibayar"
-            // Fungsi akan dijalankan setiap kali kasir mengetik di kolom ini
-            uangDibayarInput.addEventListener('input', hitungDanTampilkanKembalian);
+            // 3. Tambahkan event listener ke setiap radio button metode pembayaran
+            metodePembayaranRadios.forEach(func tion(radio) {
+                radio.addEventListener('change', toggleKalkulatorVisibility);
+            });
+
+            // 4. Panggil fungsi sekali saat halaman pertama kali dimuat
+            // untuk mengatur tampilan awal sesuai dengan pilihan default.
+            toggleKalkulatorVisibility();
         });
     </script>
 @endpush
