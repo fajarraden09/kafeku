@@ -404,63 +404,71 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // --- Bagian A: Kode yang sudah ada untuk kalkulator ---
+            // --- KUMPULAN SEMUA ELEMEN YANG DIBUTUHKAN ---
             const uangDibayarInput = document.getElementById('uang_dibayar');
             const totalPriceElement = document.getElementById('total-price');
             const uangKembalianElement = document.getElementById('uang_kembalian');
-            // Pastikan elemen kalkulator ada
-            if (uangDibayarInput && totalPriceElement && uangKembalianElement) {
-                function hitungDanTampilkanKembalian() {
-                    // ... (Fungsi ini tidak berubah sama sekali)
-                    const totalHargaTeks = totalPriceElement.textContent;
-                    const totalHarga = parseFloat(totalHargaTeks.replace(/[^0-9]/g, '')) || 0;
-                    const uangDibayar = parseFloat(uangDibayarInput.value.replace(/[^0-9]/g, '')) || 0;
-                    let nilaiInput = uangDibayarInput.value.replace(/[^0-9]/g, '');
-                    if (nilaiInput) {
-                        uangDibayarInput.value = parseInt(nilaiInput, 10).toLocaleString('id-ID');
-                    } else {
-                        uangDibayarInput.value = '';
-                    }
-
-                    let kembalian = 0;
-                    if (uangDibayar >= totalHarga) {
-                        kembalian = uangDibayar - totalHarga;
-                    }
-                    uangKembalianElement.textContent = `Rp ${kembalian.toLocaleString('id-ID')}`;
-                }
-                uangDibayarInput.addEventListener('input', hitungDanTampilkanKembalian);
-            }
-
-            // --- Bagian B: LOGIKA BARU UNTUK MENAMPILKAN/SEMBUNYIKAN KALKULATOR ---
-            // 1. Pilih elemen yang dibutuhkan
             const kalkulatorWrapper = document.getElementById('kalkulator-kembalian-wrapper');
             const metodePembayaranRadios = document.querySelectorAll('input[name="metode_pembayaran"]');
 
-            // 2. Buat fungsi untuk mengecek dan mengubah visibilitas
+            // --- FUNGSI UNTUK MENGHITUNG KEMBALIAN ---
+            function hitungDanTampilkanKembalian() {
+                // Pastikan elemen ada sebelum menjalankan fungsi
+                if (!totalPriceElement || !uangDibayarInput || !uangKembalianElement) return;
+
+                const totalHargaTeks = totalPriceElement.textContent || '0';
+                const totalHarga = parseFloat(totalHargaTeks.replace(/[^0-9]/g, '')) || 0;
+
+                const uangDibayarTeks = uangDibayarInput.value || '0';
+                const uangDibayar = parseFloat(uangDibayarTeks.replace(/[^0-9]/g, '')) || 0;
+
+                // Format input agar ada titik ribuan
+                if (uangDibayarTeks) {
+                    let nilaiInput = uangDibayarTeks.replace(/[^0-9]/g, '');
+                    uangDibayarInput.value = nilaiInput ? parseInt(nilaiInput, 10).toLocaleString('id-ID') : '';
+                }
+
+                let kembalian = 0;
+                if (uangDibayar >= totalHarga) {
+                    kembalian = uangDibayar - totalHarga;
+                }
+
+                uangKembalianElement.textContent = `Rp ${kembalian.toLocaleString('id-ID')}`;
+            }
+
+            // --- FUNGSI UNTUK MENAMPILKAN/SEMBUNYIKAN KALKULATOR ---
             function toggleKalkulatorVisibility() {
-                // Dapatkan radio button yang sedang dipilih
+                // Pastikan elemen ada sebelum menjalankan fungsi
+                if (!kalkulatorWrapper) return;
+
                 const selectedMetode = document.querySelector('input[name="metode_pembayaran"]:checked');
+
                 if (selectedMetode && selectedMetode.value === 'Tunai') {
-                    // Jika "Tunai", tampilkan kalkulator
                     kalkulatorWrapper.style.display = 'block';
                 } else {
-                    // Jika bukan "Tunai", sembunyikan kalkulator
                     kalkulatorWrapper.style.display = 'none';
-                    // (Opsional) Kosongkan input saat disembunyikan agar bersih
                     if (uangDibayarInput) {
-                        uangDibayarInput.value = '';
-                        hitungDanTampilkanKembalian(); // Panggil agar tulisan kembalian reset ke Rp 0
+                        uangDibayarInput.value = ''; // Reset input
+                        hitungDanTampilkanKembalian(); // Reset tampilan kembalian
                     }
                 }
             }
 
-            // 3. Tambahkan event listener ke setiap radio button metode pembayaran
-            metodePembayaranRadios.forEach(func tion(radio) {
-                radio.addEventListener('change', toggleKalkulatorVisibility);
-            });
+            // --- MENJALANKAN FUNGSI DAN EVENT LISTENER ---
 
-            // 4. Panggil fungsi sekali saat halaman pertama kali dimuat
-            // untuk mengatur tampilan awal sesuai dengan pilihan default.
+            // Tambahkan listener ke input uang dibayar
+            if (uangDibayarInput) {
+                uangDibayarInput.addEventListener('input', hitungDanTampilkanKembalian);
+            }
+
+            // Tambahkan listener ke semua radio button metode pembayaran
+            if (metodePembayaranRadios.length > 0) {
+                metodePembayaranRadios.forEach(function (radio) {
+                    radio.addEventListener('change', toggleKalkulatorVisibility);
+                });
+            }
+
+            // Panggil fungsi visibilitas saat halaman pertama kali dimuat
             toggleKalkulatorVisibility();
         });
     </script>
