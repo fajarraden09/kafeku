@@ -27,7 +27,7 @@
                             <a href="{{ route('owner.bahan_baku') }}" class="small-box-footer">Lihat Detail <i
                                     class="fas fa-arrow-circle-right"></i></a>
                         </div>
-                    </div>98
+                    </div>
 
                     {{-- KOTAK BARU: Bahan Kadaluarsa --}}
                     <div class="col-lg-4 col-6">
