@@ -205,32 +205,41 @@
         document.addEventListener('DOMContentLoaded', function () {
 
             let cart = {};
-            let currentTotalPrice = 0; // Variabel untuk menyimpan total harga numerik
+            // Obyek baru untuk menyimpan state sisa porsi semua menu
             const sisaPorsiState = {};
 
-            // ================= FUNGSI BARU UNTUK MENGHITUNG KEMBALIAN =================
-            function calculateAndDisplayChange() {
-                const bayarEl = document.getElementById('uang_dibayar');
-                const kembalianEl = document.getElementById('uang_kembalian');
+            // Fungsi untuk memperbarui tampilan badge dan tombol
+            function updatePorsiDisplay(menuId, sisa) {
+                const badge = document.getElementById(`sisa-porsi-${menuId}`);
+                const button = document.getElementById(`btn-tambah-${menuId}`);
+                if (!badge || !button) return;
 
-                // Hilangkan karakter non-numerik (seperti 'Rp' atau '.') lalu ubah ke angka
-                const uangDibayar = parseFloat(bayarEl.value.replace(/[^0-9]/g, '')) || 0;
+                let badgeClass = 'bg-success';
+                let text = `Porsi Tersedia: ${sisa}`;
+                let isDisabled = false;
 
-                let kembalian = 0;
-                if (uangDibayar > 0 && uangDibayar >= currentTotalPrice) {
-                    kembalian = uangDibayar - currentTotalPrice;
+                // Logika pewarnaan badge dan status tombol
+                if (sisa === -1) { // -1 menandakan tak terhingga
+                    badgeClass = 'bg-secondary';
+                    text = 'Tanpa Stok';
+                } else if (sisa <= 0) {
+                    badgeClass = 'bg-danger';
+                    text = 'Stok Habis';
+                    isDisabled = true;
+                } else if (sisa <= 5) {
+                    badgeClass = 'bg-warning text-dark';
                 }
 
-                kembalianEl.textContent = `Rp ${kembalian.toLocaleString('id-ID')}`;
-            }
-            // ==========================================================================
-
-            function updatePorsiDisplay(menuId, sisa) {
-                // ... (Fungsi ini tidak berubah)
+                badge.className = `badge ${badgeClass}`;
+                badge.textContent = text;
+                button.disabled = isDisabled;
             }
 
+            // Saat halaman dimuat, isi sisaPorsiState dengan data awal dari server
             document.querySelectorAll('.btn-add-to-cart').forEach(button => {
-                // ... (Bagian ini tidak berubah)
+                const menuId = button.dataset.id;
+                const sisa = parseInt(button.dataset.sisaPorsi);
+                sisaPorsiState[menuId] = sisa;
             });
 
             function renderCart() {
@@ -243,24 +252,28 @@
                 let totalPrice = 0;
                 let index = 0;
 
-                const sisaPorsiSaatIni = { ...sisaPorsiState };
+                // Hitung ulang semua sisa porsi dari awal
+                const sisaPorsiSaatIni = { ...sisaPorsiState }; // Salin state awal
 
+                // Kurangi sisa porsi berdasarkan item yang ada di keranjang
                 for (const id in cart) {
-                    if (sisaPorsiSaatIni[id] !== -1) {
+                    if (sisaPorsiSaatIni[id] !== -1) { // Jangan kurangi jika stok tak terhingga
                         sisaPorsiSaatIni[id] -= cart[id].jumlah;
                     }
                 }
 
+                // Perbarui tampilan badge untuk SEMUA menu
                 for (const menuId in sisaPorsiState) {
                     updatePorsiDisplay(menuId, sisaPorsiSaatIni[menuId]);
                 }
 
+                // Render item di keranjang pesanan
                 for (const id in cart) {
                     const item = cart[id];
                     const subtotal = item.price * item.jumlah;
                     totalPrice += subtotal;
 
-                    const row = `<tr>...</tr>`; // (Isi row tidak berubah)
+                    const row = `<tr><td>${item.name}</td><td><input type="number" value="${item.jumlah}" min="1" class="form-control form-control-sm cart-item-qty" data-id="${id}"></td><td class="kolom-subtotal">Rp ${subtotal.toLocaleString('id-ID')}</td><td><button type="button" class="btn btn-danger btn-sm btn-remove-from-cart" data-id="${id}">&times;</button></td></tr>`;
                     cartItemsContainer.insertAdjacentHTML('beforeend', row);
 
                     const hiddenId = `<input type="hidden" name="items[${index}][menu_id]" value="${id}">`;
@@ -271,31 +284,165 @@
                 }
 
                 totalPriceEl.textContent = `Rp ${totalPrice.toLocaleString('id-ID')}`;
-
-                // ================= MODIFIKASI PADA renderCart() ======================
-                // 1. Simpan nilai total harga ke variabel global
-                currentTotalPrice = totalPrice;
-                // 2. Panggil fungsi kalkulator setiap kali keranjang diperbarui
-                calculateAndDisplayChange();
-                // =====================================================================
             }
 
-            // ... (Fungsi event listener lainnya tidak berubah) ...
+            // Event listener untuk tombol "Tambah"
+            document.getElementById('menu-container').addEventListener('click', function (e) {
+                if (e.target && e.target.classList.contains('btn-add-to-cart')) {
+                    const id = e.target.dataset.id;
 
-            // ================= EVENT LISTENER BARU UNTUK INPUT UANG DIBAYAR ==========
-            document.getElementById('uang_dibayar').addEventListener('input', function () {
-                // Format input agar ada titik ribuan saat diketik
-                let value = this.value.replace(/[^0-9]/g, '');
-                if (value) {
-                    this.value = parseInt(value, 10).toLocaleString('id-ID');
-                } else {
-                    this.value = '';
+                    // Cek sisa porsi sebelum menambah
+                    const sisaSekarang = (sisaPorsiState[id] - (cart[id] ? cart[id].jumlah : 0));
+                    if (sisaSekarang <= 0 && sisaPorsiState[id] !== -1) {
+                        alert('Stok untuk menu ini sudah habis!');
+                        return;
+                    }
+
+                    const name = e.target.dataset.name;
+                    const price = parseFloat(e.target.dataset.price);
+
+                    if (cart[id]) {
+                        cart[id].jumlah++;
+                    } else {
+                        cart[id] = { name, price, jumlah: 1 };
+                    }
+                    renderCart();
                 }
-                // Panggil fungsi kalkulator setiap kali user mengetik
-                calculateAndDisplayChange();
             });
-            // ==========================================================================
 
+            // Event listener lainnya (tidak berubah, hanya memanggil renderCart())
+            document.getElementById('cart-items').addEventListener('change', function (e) {
+                if (e.target.classList.contains('cart-item-qty')) {
+                    const id = e.target.dataset.id;
+                    const newJumlah = parseInt(e.target.value);
+                    if (newJumlah >= 0) { // Izinkan 0 untuk hapus
+                        const sisaAsli = sisaPorsiState[id];
+                        if (newJumlah > sisaAsli && sisaAsli !== -1) {
+                            alert(`Stok tidak mencukupi! Hanya tersedia ${sisaAsli} porsi.`);
+                            e.target.value = cart[id] ? cart[id].jumlah : 0; // Kembalikan ke nilai lama
+                            return;
+                        }
+
+                        if (newJumlah === 0) {
+                            delete cart[id];
+                        } else {
+                            cart[id].jumlah = newJumlah;
+                        }
+                    }
+                    renderCart();
+                }
+            });
+
+            document.getElementById('cart-items').addEventListener('click', function (e) {
+                if (e.target.classList.contains('btn-remove-from-cart')) {
+                    const id = e.target.dataset.id;
+                    delete cart[id];
+                    renderCart();
+                }
+            });
+
+            document.getElementById('order-form').addEventListener('submit', function (e) {
+                if (Object.keys(cart).length === 0) {
+                    e.preventDefault();
+                    alert('Keranjang pesanan masih kosong!');
+                }
+            });
+
+            // Filter Kategori (tidak berubah)
+            const filterButtons = document.querySelectorAll('.btn-filter');
+            const menuCards = document.querySelectorAll('.menu-card');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    const filter = this.getAttribute('data-filter');
+                    menuCards.forEach(card => {
+                        if (filter === 'all' || card.getAttribute('data-kategori-id') === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Sticky Card (tidak berubah)
+            const orderCard = document.getElementById('kartu-pesanan');
+            if (orderCard) {
+                const parentColumn = orderCard.parentElement;
+                let initialTop = orderCard.offsetTop;
+                const setStickyWidth = () => {
+                    if (orderCard.classList.contains('is-sticky')) {
+                        orderCard.style.width = parentColumn.offsetWidth + 'px';
+                    } else {
+                        orderCard.style.width = 'auto';
+                    }
+                };
+                window.addEventListener('scroll', function () {
+                    if (window.pageYOffset > initialTop) {
+                        if (!orderCard.classList.contains('is-sticky')) {
+                            orderCard.classList.add('is-sticky');
+                            setStickyWidth();
+                        }
+                    } else {
+                        if (orderCard.classList.contains('is-sticky')) {
+                            orderCard.classList.remove('is-sticky');
+                            setStickyWidth();
+                        }
+                    }
+                });
+                window.addEventListener('resize', setStickyWidth);
+            }
+
+        });
+    </script>
+@endpush
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // 1. Pilih elemen yang dibutuhkan dari halaman
+            const uangDibayarInput = document.getElementById('uang_dibayar');
+            const totalPriceElement = document.getElementById('total-price');
+            const uangKembalianElement = document.getElementById('uang_kembalian');
+
+            // Pastikan semua elemen ada sebelum melanjutkan
+            if (!uangDibayarInput || !totalPriceElement || !uangKembalianElement) {
+                return;
+            }
+
+            // 2. Buat fungsi untuk menghitung dan menampilkan kembalian
+            function hitungDanTampilkanKembalian() {
+                // Ambil teks dari total harga (contoh: "Rp 50.000")
+                const totalHargaTeks = totalPriceElement.textContent;
+                // Bersihkan teks menjadi angka saja (contoh: "50000")
+                const totalHarga = parseFloat(totalHargaTeks.replace(/[^0-9]/g, '')) || 0;
+
+                // Ambil nilai dari input uang dibayar dan bersihkan juga
+                const uangDibayar = parseFloat(uangDibayarInput.value.replace(/[^0-9]/g, '')) || 0;
+
+                // Format input agar ada titik ribuan saat diketik
+                let nilaiInput = uangDibayarInput.value.replace(/[^0-9]/g, '');
+                if (nilaiInput) {
+                    uangDibayarInput.value = parseInt(nilaiInput, 10).toLocaleString('id-ID');
+                } else {
+                    uangDibayarInput.value = '';
+                }
+
+                // Hitung kembalian
+                let kembalian = 0;
+                if (uangDibayar >= totalHarga) {
+                    kembalian = uangDibayar - totalHarga;
+                }
+
+                // Tampilkan hasilnya dengan format Rupiah
+                uangKembalianElement.textContent = `Rp ${kembalian.toLocaleString('id-ID')}`;
+            }
+
+            // 3. Tambahkan event listener ke input "Uang Dibayar"
+            // Fungsi akan dijalankan setiap kali kasir mengetik di kolom ini
+            uangDibayarInput.addEventListener('input', hitungDanTampilkanKembalian);
         });
     </script>
 @endpush
