@@ -12,10 +12,12 @@ class KategoriSeeder extends Seeder
             'Ringan',
             'Kopi',
             'Non-Kopi',
+            'Gojek', // <-- TAMBAHKAN BARIS INI
         ];
 
         foreach ($kategori as $namaKategori) {
-            Kategori::create(['nama_kategori' => $namaKategori]);
+            // Gunakan firstOrCreate untuk menghindari duplikat
+            Kategori::firstOrCreate(['nama_kategori' => $namaKategori]); 
         }
     }
 }
